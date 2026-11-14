@@ -99,9 +99,9 @@ function log(){
   h('div',{class:'row'},h('input',{type:'date',value:sess.date,'aria-label':'Дата',onchange:e=>sess.date=e.target.value||today()})),
   h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest)||90)},'Отдых '+(S.settings.rest>=60?(S.settings.rest/60)+' мин':S.settings.rest+' с'))),
   sess.entries.map(en=>h('div',{class:'card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
-   h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, кг'),h('span',{class:'hd'},'Повторы'),h('span'),
+   h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, '+(S.settings.units==='lb'?'lb':'кг')),h('span',{class:'hd'},'Повторы'),h('span'),
     en.sets.map((s,i)=>[h('span',{class:'hd'},i+1),
-     h('input',{type:'text',inputmode:'decimal',value:s.w,'aria-label':'Вес, подход '+(i+1),oninput:e=>s.w=e.target.value,style:'text-align:center'}),
+     h('input',{type:'text',inputmode:'decimal',value:s.w?(S.settings.units==='lb'?(Number(s.w)*2.2046226218).toFixed(1):s.w):'','aria-label':'Вес, подход '+(i+1),oninput:e=>s.w=e.target.value,style:'text-align:center'}),
      h('input',{type:'text',inputmode:'numeric',value:s.r,'aria-label':'Повторы, подход '+(i+1),oninput:e=>s.r=e.target.value,style:'text-align:center'}),
      h('button',{class:'x','aria-label':'Удалить подход',onclick:()=>{en.sets.splice(i,1);render()}},'✕')])),
    h('button',{class:'b',onclick:()=>{const l=en.sets[en.sets.length-1]||{w:'',r:''};en.sets.push({w:l.w,r:l.r});render()}},'Добавить подход'))),
@@ -109,7 +109,7 @@ function log(){
   exPicker('log',n=>{if(!sess.entries.some(e=>e.ex===n))sess.entries.push({ex:n,sets:lastSets(n)});render()}),
   err&&h('p',{class:'err'},err),
   h('div',{class:'row',style:'margin-top:16px'},h('button',{class:'b p',onclick:()=>{
-    const entries=sess.entries.map(e=>({ex:e.ex,sets:e.sets.map(s=>({w:num(s.w),r:num(s.r)})).filter(s=>s.r>0)})).filter(e=>e.sets.length);
+    const entries=sess.entries.map(e=>({ex:e.ex,sets:e.sets.map(s=>({w:unitToKg(s.w),r:num(s.r)})).filter(s=>s.r>0)})).filter(e=>e.sets.length);
     if(!entries.length){err='Укажите повторы хотя бы в одном подходе.';return render()}
     S.logs.push({id:uid(),date:sess.date,name:sess.name,entries});S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=entries[0].ex;sess=null;err='';go('progress')},},'Сохранить результат'),
    h('button',{class:'b',onclick:()=>{sess=null;err='';render()}},'Отмена')));
@@ -135,11 +135,11 @@ function startRest(sec){clearInterval(rest.iv);rest.end=Date.now()+sec*1000;cons
  const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){t.textContent='Отдых закончен';clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}if(S.settings.notifications&&'Notification'in window&&Notification.permission==='granted')new Notification('Журнал тренировок',{body:'Время отдыха закончилось. Следующий подход!'});return}t.textContent='Отдых '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')};
  tick();rest.iv=setInterval(tick,500)}
 function body(){
- const bi=h('input',{type:'text',inputmode:'decimal',placeholder:'Вес тела, кг','aria-label':'Вес тела, кг'});
+ const bi=h('input',{type:'text',inputmode:'decimal',placeholder:'Вес тела, '+(S.settings.units==='lb'?'lb':'кг'),'aria-label':'Вес тела, '+(S.settings.units==='lb'?'lb':'кг')});
  const last=S.body[S.body.length-1];
  return h('div',{},h('h2',{},'Вес тела'),h('div',{class:'card'},
-  h('div',{class:'row'},h('div',{class:'grow'},bi),h('button',{class:'b',onclick:()=>{const w=num(bi.value);if(!w)return;const d=today();S.body=S.body.filter(b=>b.date!==d);S.body.push({date:d,w});S.body.sort((a,b)=>a.date.localeCompare(b.date));save();render()}},'Записать')),
-  last?h('p',{class:'mut'},'Последняя запись: '+last.w+' кг, '+fd(last.date)):h('p',{class:'mut'},'Записывайте вес раз в несколько дней, и здесь появится график.'),
+  h('div',{class:'row'},h('div',{class:'grow'},bi),h('button',{class:'b',onclick:()=>{const w=unitToKg(bi.value);if(!w)return;const d=today();S.body=S.body.filter(b=>b.date!==d);S.body.push({date:d,w});S.body.sort((a,b)=>a.date.localeCompare(b.date));save();render()}},'Записать')),
+  last?h('p',{class:'mut'},'Последняя запись: '+(S.settings.units==='lb'?(last.w*2.2046226218).toFixed(1):last.w)+' '+(S.settings.units==='lb'?'lb':'кг')+', '+fd(last.date)):h('p',{class:'mut'},'Записывайте вес раз в несколько дней, и здесь появится график.'),
   S.body.length>1?chart(S.body.map(b=>({d:fd(b.date),v:b.w})),'вес тела'):null));
 }
 let bk=null;
@@ -253,7 +253,7 @@ function profileV(){
    fld('Опыт тренировок','exp',['Новичок','Средний','Продвинутый']),fld('Тренировок в неделю','days',['1','2','3','4','5','6','7']),fld('Травмы и ограничения','inj')),
   h('h2',{},'Замеры'),
   h('div',{class:'card'},fld('Талия, см','waist',null,1),fld('Грудь, см','chest',null,1),fld('Бёдра, см','hips',null,1),fld('Бицепс, см','arm',null,1),
-   h('p',{class:'mut'},lb?'Вес тела: '+lb.w+' кг ('+fd(lb.date)+')'+(bmi?', индекс массы тела '+bmi:'')+'. Новый вес записывается во вкладке «Прогресс».':'Вес тела записывается во вкладке «Прогресс».')),
+   h('p',{class:'mut'},lb?'Вес тела: '+(S.settings.units==='lb'?(lb.w*2.2046226218).toFixed(1):lb.w)+' '+(S.settings.units==='lb'?'lb':'кг')+' ('+fd(lb.date)+')'+(bmi?', индекс массы тела '+bmi:'')+'. Новый вес записывается во вкладке «Прогресс».':'Вес тела записывается во вкладке «Прогресс».')),
   h('p',{class:'mut'},'Данные хранятся только в этом браузере. ИИ-тренер получает их, только когда вы отправляете ему сообщение.'));
 }
 const TC={plans:'#3b82f6',log:'#16a34a',progress:'#d97706',coach:'#a855f7',profile:'#ec4899'};
