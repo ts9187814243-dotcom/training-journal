@@ -98,7 +98,7 @@ function log(){
  ni.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEx()}});
  return h('div',{},h('h2',{},sess.name),
   h('div',{class:'row'},h('input',{type:'date',value:sess.date,'aria-label':'Дата',onchange:e=>sess.date=e.target.value||today()})),
-  h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest)||90)},'Отдых '+(S.settings.rest>=60?(S.settings.rest/60)+' мин':S.settings.rest+' с'))),
+  S.settings.rest>0?h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest))},'Отдых '+(S.settings.rest>=60?(S.settings.rest/60)+' мин':S.settings.rest+' с'))):null,
   sess.entries.map(en=>h('div',{class:'card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
    h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, '+(S.settings.units==='lb'?'lb':'кг')),h('span',{class:'hd'},'Повторы'),h('span'),
     en.sets.map((s,i)=>[h('span',{class:'hd'},i+1),
@@ -240,7 +240,7 @@ function settingsV(){
  lang.addEventListener('change',()=>{S.settings.language=lang.value;save();render()});
  const theme=h('select',{'aria-label':tr('Тема оформления')},[['system','Системная'],['light','Светлая'],['dark','Тёмная']].map(([v,n])=>h('option',{value:v,selected:S.settings.theme===v},tr(n))));theme.addEventListener('change',()=>{S.settings.theme=theme.value;applyTheme();save()});
  const units=h('select',{'aria-label':tr('Единицы измерения')},[['kg','Килограммы (кг)'],['lb','Фунты (lb)']].map(([v,n])=>h('option',{value:v,selected:S.settings.units===v},tr(n))));units.addEventListener('change',()=>{S.settings.units=units.value;save();render()});
- const timer=h('select',{'aria-label':tr('Таймер отдыха')},[30,45,60,90,120,150,180,240].map(v=>h('option',{value:v,selected:Number(S.settings.rest)===v},v+' сек.')));timer.addEventListener('change',()=>{S.settings.rest=Number(timer.value);save()});
+ const timer=h('select',{'aria-label':tr('Таймер отдыха')},[['off','Отключён'],...[30,45,60,90,120,150,180,240].map(v=>[String(v),v+' сек.'])].map(([v,n])=>h('option',{value:v,selected:(S.settings.rest===null||S.settings.rest===0)?v==='off':String(S.settings.rest)===v},n)));timer.addEventListener('change',()=>{S.settings.rest=timer.value==='off'?null:Number(timer.value);save();render()});
  const notify=h('input',{type:'checkbox',checked:S.settings.notifications,'aria-label':tr('Уведомления')});notify.addEventListener('change',async()=>{if(notify.checked&&'Notification'in window){const p=await Notification.requestPermission();S.settings.notifications=p==='granted';if(!S.settings.notifications)notify.checked=false}else{S.settings.notifications=false;notify.checked=false}save()});
  box.append(h('div',{class:'card'},h('label',{class:'fl'},tr('Язык'),lang),h('label',{class:'fl'},tr('Тема оформления'),theme),h('label',{class:'fl'},tr('Единицы измерения'),units),h('label',{class:'fl'},tr('Таймер отдыха'),timer),h('label',{class:'fl row'},h('span',{class:'grow'},tr('Уведомления')),notify),h('p',{class:'mut'},'Уведомление отправляется при окончании таймера отдыха, пока браузер открыт. Браузер должен поддерживать уведомления.')));
  box.append(h('button',{class:'b',onclick:()=>{settingsOpen=false;render()}},tr('Назад в профиль')));return box;
@@ -248,7 +248,7 @@ function settingsV(){
 function profileV(){
  if(settingsOpen)return settingsV();
  const p=S.profile,lb=S.body[S.body.length-1],hh=num(p.h),bmi=lb&&hh?(lb.w/Math.pow(hh/100,2)).toFixed(1):null;
- return h('div',{},h('div',{class:'row',style:'justify-content:space-between'},h('h2',{},'Личный кабинет'),h('button',{class:'settings-round',type:'button','aria-label':tr('Настройки'),title:tr('Настройки'),onclick:()=>{settingsOpen=true;render()}},'⚙')),
+ return h('div',{},h('h2',{},'Личный кабинет'),
   h('div',{class:'card'},fld('Имя','name'),fld('Пол','sex',['Мужской','Женский']),fld('Возраст','age',null,1),fld('Рост, см','h',null,1),
    fld('Цель','goal',['Набрать мышечную массу','Похудеть','Стать сильнее','Развить выносливость','Поддерживать форму']),
    fld('Опыт тренировок','exp',['Новичок','Средний','Продвинутый']),fld('Тренировок в неделю','days',['1','2','3','4','5','6','7']),fld('Травмы и ограничения','inj')),
@@ -260,7 +260,7 @@ function profileV(){
 const TC={plans:'#3b82f6',log:'#16a34a',progress:'#d97706',coach:'#a855f7',profile:'#ec4899'};
 const IC={plans:`<rect x='4' y='3' width='16' height='18' rx='3'/><path d='M8 8h8M8 12h8M8 16h5'/>`,log:`<circle cx='12' cy='12' r='9'/><path d='M12 8v8M8 12h8'/>`,progress:`<path d='M4 19V5M4 19h16'/><path d='M8 15l3-4 3 2 5-6'/>`,coach:`<path d='M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z'/><path d='M9 12h.01M12 12h.01M15 12h.01'/>`,profile:`<circle cx='12' cy='8' r='4'/><path d='M4 21c1-4 4-6 8-6s7 2 8 6'/>`};
 function spark(){const s=h('span',{class:'spark'});s.innerHTML=`<svg viewBox='0 0 24 24' width='34' height='34' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z'/></svg>`;return s}
-document.getElementById('av').hidden=true;
+document.getElementById('av').addEventListener('click',()=>{settingsOpen=true;go('profile')});
 let selDay=today();
 function calV(){
  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10))}
@@ -274,6 +274,6 @@ function ico(k){const s=h('span',{style:'display:flex'});s.innerHTML=`<svg viewB
 function render(){
  document.documentElement.lang=S.settings.language||'ru';
  const nav=document.getElementById('nav');nav.replaceChildren(...[['plans',tr('Планы')],['log',tr('Запись')],['progress',tr('Прогресс')],['coach',tr('Тренер')],['profile',tr('Профиль')]].map(([k,t])=>h('button',{'aria-current':String(tab===k),style:'--c:'+TC[k],onclick:()=>go(k)},ico(k),h('span',{},t))));
- {const av=document.getElementById('av'),n=((S.profile||{}).name||'').trim();av.replaceChildren(n?n[0].toUpperCase():ico('profile'))}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());
+ {const av=document.getElementById('av');av.replaceChildren('⚙');av.setAttribute('aria-label',tr('Настройки'));av.title=tr('Настройки')}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());
 }
 render();
