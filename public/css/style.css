@@ -82,7 +82,7 @@ main{padding:0 0 120px}
 header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px}
 h1{margin:0;font-size:24px;font-weight:800;line-height:1;letter-spacing:-.03em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--or);display:block}
 h1 i{font-style:normal;color:var(--cy)}
-#av{width:44px;height:44px;padding:0;border-radius:14px;border:1px solid var(--line);background:var(--tint);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease}#av:hover{transform:rotate(12deg);background:var(--surf);border-color:var(--acc)}#av:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+#av{width:44px;height:44px;padding:0;border-radius:14px;border:1px solid var(--line);background:var(--tint);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .18s ease,border-color .18s ease}#av:hover{background:var(--surf);border-color:var(--acc)}#av:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
 #av svg{width:22px;height:22px}
 #v{background:var(--surf);border-radius:34px 34px 0 0;padding:6px 20px 40px;min-height:70vh}
 h2{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:26px 0 14px;border:0;padding:0}
