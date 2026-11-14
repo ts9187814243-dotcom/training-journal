@@ -2,8 +2,12 @@
 const KEY='wlog-v1';
 let S={workouts:[],logs:[]};
 try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
-S.body=S.body||[];S.profile=S.profile||{};
+S.body=S.body||[];S.profile=S.profile||{};S.settings=Object.assign({language:'ru',theme:'system',units:'kg',rest:90,notifications:false},S.settings||{});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const LANGS=[['ru','Русский'],['en','English'],['de','Deutsch'],['zh','中文'],['ja','日本語'],['fr','Français'],['hi','हिन्दी'],['es','Español']];
+const WORDS={en:{'Планы':'Plans','Запись':'Log','Прогресс':'Progress','Тренер':'Coach','Профиль':'Profile','Настройки':'Settings','Язык':'Language','Тема оформления':'Appearance','Системная':'System','Светлая':'Light','Тёмная':'Dark','Единицы измерения':'Units','Килограммы (кг)':'Kilograms (kg)','Фунты (lb)':'Pounds (lb)','Таймер отдыха':'Rest timer','Уведомления':'Notifications','Сохранить настройки':'Save settings','Назад в профиль':'Back to profile','Редактировать':'Edit'},de:{'Планы':'Pläne','Запись':'Training','Прогресс':'Fortschritt','Тренер':'Trainer','Профиль':'Profil','Настройки':'Einstellungen','Язык':'Sprache','Тема оформления':'Darstellung','Системная':'System','Светлая':'Hell','Тёмная':'Dunkel','Единицы измерения':'Einheiten','Килограммы (кг)':'Kilogramm (kg)','Фунты (lb)':'Pfund (lb)','Таймер отдыха':'Pausentimer','Уведомления':'Mitteilungen','Назад в профиль':'Zurück zum Profil','Редактировать':'Bearbeiten'},es:{'Планы':'Planes','Запись':'Registrar','Прогресс':'Progreso','Тренер':'Entrenador','Профиль':'Perfil','Настройки':'Ajustes','Язык':'Idioma','Тема оформления':'Apariencia','Системная':'Sistema','Светлая':'Claro','Тёмная':'Oscuro','Единицы измерения':'Unidades','Килограммы (кг)':'Kilogramos (kg)','Фунты (lb)':'Libras (lb)','Таймер отдыха':'Temporizador de descanso','Уведомления':'Notificaciones','Назад в профиль':'Volver al perfil','Редактировать':'Editar'},fr:{'Планы':'Programmes','Запись':'Séance','Прогресс':'Progression','Тренер':'Coach','Профиль':'Profil','Настройки':'Paramètres','Язык':'Langue','Тема оформления':'Apparence','Системная':'Système','Светлая':'Clair','Тёмная':'Sombre','Единицы измерения':'Unités','Килограммы (кг)':'Kilogrammes (kg)','Фунты (lb)':'Livres (lb)','Таймер отдыха':'Minuteur de repos','Уведомления':'Notifications','Назад в профиль':'Retour au profil','Редактировать':'Modifier'},zh:{'Планы':'训练计划','Запись':'训练记录','Прогресс':'进度','Тренер':'教练','Профиль':'个人资料','Настройки':'设置','Язык':'语言','Тема оформления':'外观','Системная':'跟随系统','Светлая':'浅色','Тёмная':'深色','Единицы измерения':'计量单位','Килограммы (кг)':'千克 (kg)','Фунты (lb)':'磅 (lb)','Таймер отдыха':'休息计时器','Уведомления':'通知','Назад в профиль':'返回个人资料','Редактировать':'编辑'},ja:{'Планы':'トレーニング計画','Запись':'記録','Прогресс':'進捗','Тренер':'コーチ','Профиль':'プロフィール','Настройки':'設定','Язык':'言語','Тема оформления':'テーマ','Системная':'システム','Светлая':'ライト','Тёмная':'ダーク','Единицы измерения':'単位','Килограммы (кг)':'キログラム (kg)','Фунты (lb)':'ポンド (lb)','Таймер отдыха':'休憩タイマー','Уведомления':'通知','Назад в профиль':'プロフィールに戻る','Редактировать':'編集'},hi:{'Планы':'योजनाएँ','Запись':'वर्कआउट दर्ज करें','Прогресс':'प्रगति','Тренер':'ट्रेनर','Профиль':'प्रोफ़ाइल','Настройки':'सेटिंग्स','Язык':'भाषा','Тема оформления':'थीम','Системная':'सिस्टम','Светлая':'हल्की','Тёмная':'गहरी','Единицы измерения':'इकाइयाँ','Килограммы (кг)':'किलोग्राम (kg)','Фунты (lb)':'पाउंड (lb)','Таймер отдыха':'आराम टाइमर','Уведомления':'सूचनाएँ','Назад в профиль':'प्रोफ़ाइल पर वापस','Редактировать':'संपादित करें'}};
+const tr=t=>(WORDS[S.settings.language]||{})[t]||t;
+const applyTheme=()=>{const t=S.settings.theme;document.documentElement.dataset.theme=t==='system'?'':t};applyTheme();
 const uid=()=>Math.random().toString(36).slice(2,9);
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const fd=s=>new Date(s+'T12:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
@@ -64,7 +68,7 @@ function plans(){
   const add=()=>{const v=inp.value.trim();if(v&&!draft.ex.includes(v)){draft.ex.push(v);draft.name=nm.value;render();document.querySelector('#v input:not(#nm)')?.focus()}};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add()}});
   const nm=h('input',{id:'nm',placeholder:'Название, например «Грудь и трицепс»',value:draft.name});
-  return h('div',{},h('h2',{},'Новая тренировка'),
+  return h('div',{},h('h2',{},draft.id?'Редактировать тренировку':'Новая тренировка'),
    h('div',{class:'card'},nm,
     h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'grow'},inp),h('button',{class:'b',onclick:add},'Добавить')),
     exPicker('plans',n=>{draft.name=nm.value;if(!draft.ex.includes(n))draft.ex.push(n);render()}),
@@ -72,11 +76,11 @@ function plans(){
     draft.ex.length?null:h('p',{class:'mut'},'Добавьте упражнения в том порядке, в каком будете их делать.'),
     err&&h('p',{class:'err'},err),
     h('div',{class:'row'},h('button',{class:'b p',onclick:()=>{const n=nm.value.trim();if(!n||!draft.ex.length){err='Введите название и добавьте хотя бы одно упражнение.';draft.name=nm.value;return render()}
-      S.workouts.push({id:uid(),name:n,ex:draft.ex});save();draft=null;err='';render()}},'Сохранить тренировку'),h('button',{class:'b',onclick:()=>{draft=null;err='';render()}},'Отмена'))));
+      if(draft.id){const w=S.workouts.find(x=>x.id===draft.id);if(w){w.name=n;w.ex=[...draft.ex]}}else S.workouts.push({id:uid(),name:n,ex:[...draft.ex]});save();draft=null;err='';render()}},'Сохранить тренировку'),h('button',{class:'b',onclick:()=>{draft=null;err='';render()}},'Отмена'))));
  }
  return h('div',{},calV(),h('h2',{},'Мои тренировки'),
   S.workouts.length?S.workouts.map(w=>h('div',{class:'card'},h('h3',{},w.name),h('p',{class:'mut',style:'margin:6px 0 12px'},w.ex.join(', ')),
-    h('div',{class:'row'},h('button',{class:'b p',onclick:()=>startSess(w)},'Начать'),h('button',{class:'b',onclick:()=>ask(planText(w))},'Спросить тренера'),h('span',{class:'grow'}),
+    h('div',{class:'row'},h('button',{class:'b p',onclick:()=>startSess(w)},'Начать'),h('button',{class:'b',onclick:()=>{draft={id:w.id,name:w.name,ex:[...w.ex]};render()}},'Редактировать'),h('button',{class:'b',onclick:()=>ask(planText(w))},'Спросить тренера'),h('span',{class:'grow'}),
      h('button',{class:'x',onclick:()=>{if(confirm('Удалить тренировку «'+w.name+'»? Записанные результаты останутся.')){S.workouts=S.workouts.filter(x=>x!==w);save();render()}}},'Удалить')))):
    h('p',{class:'mut'},'Пока пусто. Составьте первую тренировку: название и список упражнений.'),
   h('button',{class:'b p',onclick:()=>{draft={name:'',ex:[]};render()}},'Составить тренировку'));
@@ -93,7 +97,7 @@ function log(){
  ni.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEx()}});
  return h('div',{},h('h2',{},sess.name),
   h('div',{class:'row'},h('input',{type:'date',value:sess.date,'aria-label':'Дата',onchange:e=>sess.date=e.target.value||today()})),
-  h('div',{class:'row',style:'margin-top:10px'},[60,90,120].map(s=>h('button',{class:'b grow',onclick:()=>startRest(s)},'Отдых '+(s<120?s+' с':'2 мин')))),
+  h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest)||90)},'Отдых '+(S.settings.rest>=60?(S.settings.rest/60)+' мин':S.settings.rest+' с'))),
   sess.entries.map(en=>h('div',{class:'card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
    h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, кг'),h('span',{class:'hd'},'Повторы'),h('span'),
     en.sets.map((s,i)=>[h('span',{class:'hd'},i+1),
@@ -128,7 +132,7 @@ let rest={end:0,iv:null};
 function stopRest(){clearInterval(rest.iv);document.getElementById('rest').hidden=true}
 document.getElementById('rs').addEventListener('click',stopRest);
 function startRest(sec){clearInterval(rest.iv);rest.end=Date.now()+sec*1000;const t=document.getElementById('rt');document.getElementById('rest').hidden=false;
- const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){t.textContent='Отдых закончен';clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}return}t.textContent='Отдых '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')};
+ const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){t.textContent='Отдых закончен';clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}if(S.settings.notifications&&'Notification'in window&&Notification.permission==='granted')new Notification('Журнал тренировок',{body:'Время отдыха закончилось. Следующий подход!'});return}t.textContent='Отдых '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')};
  tick();rest.iv=setInterval(tick,500)}
 function body(){
  const bi=h('input',{type:'text',inputmode:'decimal',placeholder:'Вес тела, кг','aria-label':'Вес тела, кг'});
@@ -228,9 +232,22 @@ function fld(l,k,o,nm){
  el.addEventListener(o?'change':'input',()=>{p[k]=el.value.trim();save()});
  return h('label',{class:'fl'},l,el);
 }
+let settingsOpen=false;
+function settingsV(){
+ const box=h('div',{},h('h2',{},tr('Настройки')));
+ const lang=h('select',{'aria-label':tr('Язык')},LANGS.map(([v,n])=>h('option',{value:v,selected:S.settings.language===v},n)));
+ lang.addEventListener('change',()=>{S.settings.language=lang.value;save();render()});
+ const theme=h('select',{'aria-label':tr('Тема оформления')},[['system','Системная'],['light','Светлая'],['dark','Тёмная']].map(([v,n])=>h('option',{value:v,selected:S.settings.theme===v},tr(n))));theme.addEventListener('change',()=>{S.settings.theme=theme.value;applyTheme();save()});
+ const units=h('select',{'aria-label':tr('Единицы измерения')},[['kg','Килограммы (кг)'],['lb','Фунты (lb)']].map(([v,n])=>h('option',{value:v,selected:S.settings.units===v},tr(n))));units.addEventListener('change',()=>{S.settings.units=units.value;save()});
+ const timer=h('select',{'aria-label':tr('Таймер отдыха')},[30,45,60,90,120,150,180,240].map(v=>h('option',{value:v,selected:Number(S.settings.rest)===v},v+' сек.')));timer.addEventListener('change',()=>{S.settings.rest=Number(timer.value);save()});
+ const notify=h('input',{type:'checkbox',checked:S.settings.notifications,'aria-label':tr('Уведомления')});notify.addEventListener('change',async()=>{if(notify.checked&&'Notification'in window){const p=await Notification.requestPermission();S.settings.notifications=p==='granted';if(!S.settings.notifications)notify.checked=false}else{S.settings.notifications=false;notify.checked=false}save()});
+ box.append(h('div',{class:'card'},h('label',{class:'fl'},tr('Язык'),lang),h('label',{class:'fl'},tr('Тема оформления'),theme),h('label',{class:'fl'},tr('Единицы измерения'),units),h('label',{class:'fl'},tr('Таймер отдыха'),timer),h('label',{class:'fl row'},h('span',{class:'grow'},tr('Уведомления')),notify),h('p',{class:'mut'},'Уведомление отправляется при окончании таймера отдыха, пока браузер открыт. Браузер должен поддерживать уведомления.')));
+ box.append(h('button',{class:'b',onclick:()=>{settingsOpen=false;render()}},tr('Назад в профиль')));return box;
+}
 function profileV(){
+ if(settingsOpen)return settingsV();
  const p=S.profile,lb=S.body[S.body.length-1],hh=num(p.h),bmi=lb&&hh?(lb.w/Math.pow(hh/100,2)).toFixed(1):null;
- return h('div',{},h('h2',{},'Личный кабинет'),
+ return h('div',{},h('div',{class:'row',style:'justify-content:space-between'},h('h2',{},'Личный кабинет'),h('button',{class:'settings-round',type:'button','aria-label':tr('Настройки'),title:tr('Настройки'),onclick:()=>{settingsOpen=true;render()}},'⚙')),
   h('div',{class:'card'},fld('Имя','name'),fld('Пол','sex',['Мужской','Женский']),fld('Возраст','age',null,1),fld('Рост, см','h',null,1),
    fld('Цель','goal',['Набрать мышечную массу','Похудеть','Стать сильнее','Развить выносливость','Поддерживать форму']),
    fld('Опыт тренировок','exp',['Новичок','Средний','Продвинутый']),fld('Тренировок в неделю','days',['1','2','3','4','5','6','7']),fld('Травмы и ограничения','inj')),
@@ -242,7 +259,7 @@ function profileV(){
 const TC={plans:'#3b82f6',log:'#16a34a',progress:'#d97706',coach:'#a855f7',profile:'#ec4899'};
 const IC={plans:`<rect x='4' y='3' width='16' height='18' rx='3'/><path d='M8 8h8M8 12h8M8 16h5'/>`,log:`<circle cx='12' cy='12' r='9'/><path d='M12 8v8M8 12h8'/>`,progress:`<path d='M4 19V5M4 19h16'/><path d='M8 15l3-4 3 2 5-6'/>`,coach:`<path d='M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z'/><path d='M9 12h.01M12 12h.01M15 12h.01'/>`,profile:`<circle cx='12' cy='8' r='4'/><path d='M4 21c1-4 4-6 8-6s7 2 8 6'/>`};
 function spark(){const s=h('span',{class:'spark'});s.innerHTML=`<svg viewBox='0 0 24 24' width='34' height='34' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2c.6 5.2 4.8 9.4 10 10-5.2.6-9.4 4.8-10 10-.6-5.2-4.8-9.4-10-10 5.2-.6 9.4-4.8 10-10z'/></svg>`;return s}
-document.getElementById('av').addEventListener('click',()=>go('profile'));
+document.getElementById('av').hidden=true;
 let selDay=today();
 function calV(){
  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10))}
@@ -254,7 +271,8 @@ function calV(){
 }
 function ico(k){const s=h('span',{style:'display:flex'});s.innerHTML=`<svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>`+IC[k]+`</svg>`;return s}
 function render(){
- const nav=document.getElementById('nav');nav.replaceChildren(...[['plans','Планы'],['log','Запись'],['progress','Прогресс'],['coach','Тренер'],['profile','Профиль']].map(([k,t])=>h('button',{'aria-current':String(tab===k),style:'--c:'+TC[k],onclick:()=>go(k)},ico(k),h('span',{},t))));
+ document.documentElement.lang=S.settings.language||'ru';
+ const nav=document.getElementById('nav');nav.replaceChildren(...[['plans',tr('Планы')],['log',tr('Запись')],['progress',tr('Прогресс')],['coach',tr('Тренер')],['profile',tr('Профиль')]].map(([k,t])=>h('button',{'aria-current':String(tab===k),style:'--c:'+TC[k],onclick:()=>go(k)},ico(k),h('span',{},t))));
  {const av=document.getElementById('av'),n=((S.profile||{}).name||'').trim();av.replaceChildren(n?n[0].toUpperCase():ico('profile'))}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());
 }
 render();
