@@ -204,3 +204,10 @@ nav button span:last-child{max-width:100%;overflow-wrap:anywhere}
   nav button span:last-child{text-align:center}
   #rest{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Кнопка показа пароля в форме авторизации */
+.password-field{position:relative;display:flex;align-items:center;margin-top:4px}
+.password-field input{padding-right:48px;margin-top:0;width:100%}
+.password-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:var(--mut);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.password-toggle:hover{background:var(--tint);color:var(--ink)}
+.password-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
