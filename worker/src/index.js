@@ -54,15 +54,14 @@ async function callGroq(messages, language, env) {
 
 async function callCloudflare(messages, language, env) {
   if (!env.AI) throw new Error("Cloudflare Workers AI binding не настроен");
-  const response = await env.AI.run(env.CF_AI_MODEL || "@cf/openai/gpt-oss-20b", {
+  const request = {
     messages: [
       { role: "system", content: INSTRUCTIONS + " Отвечай строго на " + language + " языке." },
       ...messages
     ],
-    max_tokens: 2000,
     temperature: 0.7,
     reasoning_effort: "low"
-  });
+  };
   const contentText = (value) => {
     if (typeof value === "string") return value;
     if (Array.isArray(value)) return value.map(part => {
@@ -71,25 +70,41 @@ async function callCloudflare(messages, language, env) {
     }).join("");
     return "";
   };
-  const outputMessage = Array.isArray(response?.output)
-    ? response.output.find(item => item?.type === "message" || item?.role === "assistant")
-    : null;
-  const outputContent = Array.isArray(outputMessage?.content)
-    ? outputMessage.content.map(part => part?.text || part?.content || "").join("")
-    : "";
-  const reply = (
-    contentText(response?.response) ||
-    contentText(response?.output_text) ||
-    contentText(response?.choices?.[0]?.message?.content) ||
-    contentText(response?.choices?.[0]?.text) ||
-    contentText(response?.choices?.[0]?.content) ||
-    contentText(response?.choices?.[0]?.delta?.content) ||
-    contentText(response?.result?.response) ||
-    outputContent
-  ).trim();
-  if (!reply) {
-    // Log structure only: never include the user's prompt or model-generated content.
+  const extractReply = (response) => {
+    const outputMessage = Array.isArray(response?.output)
+      ? response.output.find(item => item?.type === "message" || item?.role === "assistant")
+      : null;
+    const outputContent = Array.isArray(outputMessage?.content)
+      ? outputMessage.content.map(part => part?.text || part?.content || "").join("")
+      : "";
+    return (
+      contentText(response?.response) ||
+      contentText(response?.output_text) ||
+      contentText(response?.choices?.[0]?.message?.content) ||
+      contentText(response?.choices?.[0]?.text) ||
+      contentText(response?.choices?.[0]?.content) ||
+      contentText(response?.choices?.[0]?.delta?.content) ||
+      contentText(response?.result?.response) ||
+      outputContent
+    ).trim();
+  };
+
+  // Retry once with a larger output budget only when the model reports truncation.
+  for (const maxTokens of [2000, 3000]) {
+    const response = await env.AI.run(env.CF_AI_MODEL || "@cf/openai/gpt-oss-20b", {
+      ...request,
+      max_tokens: maxTokens
+    });
+    const reply = extractReply(response);
     const firstChoice = Array.isArray(response?.choices) ? response.choices[0] : null;
+    const finishReason = firstChoice?.finish_reason ?? firstChoice?.stop_reason ?? null;
+    if (finishReason === "length" && maxTokens === 2000) {
+      console.warn("Cloudflare Workers AI response truncated; retrying once with 3000 tokens");
+      continue;
+    }
+    if (reply) return reply;
+
+    // Log structure only: never include the user's prompt or model-generated content.
     const choiceMessage = firstChoice?.message;
     const shape = {
       topLevelKeys: response && typeof response === "object" ? Object.keys(response) : [],
@@ -107,11 +122,11 @@ async function callCloudflare(messages, language, env) {
       reasoningContentType: typeof choiceMessage?.reasoning_content,
       reasoningContentLength: typeof choiceMessage?.reasoning_content === "string" ? choiceMessage.reasoning_content.length : null,
       choiceTextType: typeof firstChoice?.text,
-      finishReason: firstChoice?.finish_reason ?? null
+      finishReason
     };
     throw new Error("Cloudflare Workers AI: не удалось извлечь текст; структура ответа: " + JSON.stringify(shape));
   }
-  return reply;
+  throw new Error("Cloudflare Workers AI: не удалось получить ответ после повторной генерации");
 }
 
 async function coach(request, env, origin) {
