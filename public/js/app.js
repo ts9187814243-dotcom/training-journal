@@ -281,7 +281,7 @@ async function ask(text){
  CH.msgs.push({r:'u',t:text},{r:'a',t:''});CH.busy=true;CH.err='';tab='coach';render();window.scrollTo({top:document.body.scrollHeight});
  const ai=CH.msgs[CH.msgs.length-1];
  try{
-  const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,provider:CH.prov,history:CH.msgs.slice(-12,-2).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t})),context:ctx(),language:S.settings.language||'ru'})});
+  const response=await fetch('https://training-journal-api.ts9187814243.workers.dev/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,provider:CH.prov,history:CH.msgs.slice(-12,-2).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t})),context:ctx(),language:S.settings.language||'ru'})});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Не удалось получить ответ от ИИ-тренера.');
   ai.t=data.reply||'Модель вернула пустой ответ.';
