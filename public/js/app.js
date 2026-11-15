@@ -274,7 +274,7 @@ function ctx(){
  L.push('Последние тренировки (вес×повторы):');
  S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(sx).join(' | ')));
  if(!S.logs.length)L.push('нет записей');
- return L.join('\\n');
+ return L.join('\n');
 }
 async function ask(text){
  if(CH.busy)return;
