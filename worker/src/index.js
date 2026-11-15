@@ -80,6 +80,9 @@ async function callCloudflare(messages, language, env) {
     contentText(response?.response) ||
     contentText(response?.output_text) ||
     contentText(response?.choices?.[0]?.message?.content) ||
+    contentText(response?.choices?.[0]?.text) ||
+    contentText(response?.choices?.[0]?.content) ||
+    contentText(response?.choices?.[0]?.delta?.content) ||
     contentText(response?.result?.response) ||
     outputContent
   ).trim();
