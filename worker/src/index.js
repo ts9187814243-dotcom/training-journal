@@ -59,8 +59,9 @@ async function callCloudflare(messages, language, env) {
       { role: "system", content: INSTRUCTIONS + " Отвечай строго на " + language + " языке." },
       ...messages
     ],
-    max_tokens: 700,
-    temperature: 0.7
+    max_tokens: 2000,
+    temperature: 0.7,
+    reasoning_effort: "low"
   });
   const contentText = (value) => {
     if (typeof value === "string") return value;
