@@ -2,7 +2,7 @@
 const KEY='wlog-v1';
 let S={workouts:[],logs:[]};
 try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
-S.body=S.body||[];S.profile=S.profile||{};S.settings=Object.assign({language:S.settings.language,theme:'system',units:'kg',rest:90,notifications:false},S.settings||{});
+S.body=S.body||[];S.profile=S.profile||{};S.settings=Object.assign({language:(S.settings||{}).language||'ru',theme:'system',units:'kg',rest:90,notifications:false},S.settings||{});
 let supabase=null,authUser=null,syncTimer=null,syncMessage='Не выполнен вход — данные пока хранятся в этом браузере.';
 const save=()=>{
  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
