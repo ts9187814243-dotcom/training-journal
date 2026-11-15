@@ -262,7 +262,7 @@ function progress(){
    h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))),backup());
 }
 const COACH_SYS='Ты персональный тренер по силовым тренировкам в приложении-дневнике. Отвечай по-русски, коротко и конкретно (до 200 слов), с цифрами из записей пользователя. Давай рекомендации по прогрессии нагрузки, объёму, отдыху и балансу групп мышц, учитывая цель, опыт и ограничения из профиля. Без Markdown-разметки: обычный текст, короткие списки через тире. Не ставь диагнозов; при боли, травмах или хронических заболеваниях советуй очную консультацию врача или тренера. Если данных мало, скажи об этом и предложи, что записывать.';
-const CH={msgs:[],busy:false,err:'',prov:'openai',ext:''};let cDraft='';
+const CH={msgs:[],busy:false,err:'',prov:'auto'};let cDraft='';
 const sx=e=>e.ex+': '+e.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ');
 const sessText=l=>'Оцени мою тренировку от '+fd(l.date)+' «'+l.name+'»: '+l.entries.map(sx).join('; ')+'. Сравни с предыдущими записями: что получилось хорошо и что изменить в следующий раз?';
 const planText=w=>'Оцени мой план «'+w.name+'»: '+w.ex.join(', ')+'. Сбалансирован ли он для моей цели? Что добавить или убрать?';
@@ -274,34 +274,22 @@ function ctx(){
  L.push('Последние тренировки (вес×повторы):');
  S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(sx).join(' | ')));
  if(!S.logs.length)L.push('нет записей');
- return L.join('\n');
+ return L.join('\\n');
 }
-const cerr=e=>e&&e.code==='not_granted'?'Доступ тренера не разрешён. Повторите и подтвердите запрос.':e&&e.code==='rate_limited'?'Слишком много запросов. Подождите немного и повторите.':e&&e.code==='none'?'Тренер доступен только на опубликованной странице в Claude.':'Не удалось получить ответ. Попробуйте ещё раз.';
 async function ask(text){
  if(CH.busy)return;
- if(CH.prov!=='openai'){CH.ext=extPrompt(text);tab='coach';render();window.scrollTo({top:0});return}
  CH.msgs.push({r:'u',t:text},{r:'a',t:''});CH.busy=true;CH.err='';tab='coach';render();window.scrollTo({top:document.body.scrollHeight});
  const ai=CH.msgs[CH.msgs.length-1];
  try{
-  const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,history:CH.msgs.slice(-12,-2).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t})),context:ctx(),language:'ru'})});
+  const response=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,provider:CH.prov,history:CH.msgs.slice(-12,-2).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t})),context:ctx(),language:S.settings.language||'ru'})});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Не удалось получить ответ от ИИ-тренера.');
   ai.t=data.reply||'Модель вернула пустой ответ.';
+  ai.provider=data.provider;
  }catch(e){CH.err=e.message||'Ошибка соединения с сервером. Проверьте подключение и попробуйте ещё раз.';if(!ai.t)CH.msgs.pop()}
  CH.busy=false;render();window.scrollTo({top:document.body.scrollHeight});
 }
-const PROV={chatgpt:['ChatGPT','https://chatgpt.com/'],gemini:['Gemini','https://gemini.google.com/app']};
-const extPrompt=t=>COACH_SYS+'\n\nДанные пользователя:\n'+ctx()+'\n\nВопрос: '+t;
-function provSel(){const s=h('select',{'aria-label':'Нейросеть',style:'width:auto'},[['openai','ИИ-тренер (API)'],['chatgpt','ChatGPT (вручную)'],['gemini','Gemini (вручную)']].map(([k,t])=>h('option',{value:k,selected:CH.prov===k},tr(t))));s.addEventListener('change',()=>{CH.prov=s.value;render()});return s}
-function extCard(){
- const [nm,url]=PROV[CH.prov];
- const ta=h('textarea',{rows:9,'aria-label':'Запрос для '+nm,placeholder:'Нажмите быстрый запрос или напишите вопрос ниже, и здесь появится готовый текст с вашими данными.'});
- ta.value=CH.ext;ta.addEventListener('input',()=>CH.ext=ta.value);
- const st=h('span',{class:'mut'});
- const cp=()=>{ta.select();const done=()=>{st.textContent='Скопировано'},fail=()=>{st.textContent='Выделите текст и скопируйте вручную'};const old=()=>{try{document.execCommand('copy')?done():fail()}catch(e){fail()}};try{navigator.clipboard.writeText(ta.value).then(done,old)}catch(e){old()}};
- return h('div',{class:'card'},h('p',{class:'mut',style:'margin-top:0'},nm+' нельзя встроить в эту страницу. Приложение готовит запрос с вашими данными: скопируйте его и вставьте в чат '+nm+'. Данные обрабатываются этим сервисом по его правилам.'),ta,
-  h('div',{class:'row',style:'margin-top:8px'},h('button',{class:'b',onclick:cp},'Скопировать'),h('a',{class:'b p',href:url,target:'_blank',rel:'noopener noreferrer'},'Открыть '+nm),st));
-}
+function provSel(){const s=h('select',{'aria-label':'Провайдер ИИ',style:'width:auto'},[['auto','Автоматически (Gemini → Groq)'],['gemini','Gemini'],['groq','Groq']].map(([k,t])=>h('option',{value:k,selected:CH.prov===k},t)));s.addEventListener('change',()=>{CH.prov=s.value;render()});return s}
 function coachV(){
  const inp=h('input',{placeholder:'Спросите тренера','aria-label':'Сообщение тренеру',value:cDraft,enterkeyhint:'send'});
  inp.addEventListener('input',()=>cDraft=inp.value);
@@ -310,9 +298,9 @@ function coachV(){
  const off=CH.busy;
  return h('div',{},h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
-  CH.prov==='openai'?h('p',{class:'mut'},'Для работы ИИ-тренера нужны серверные настройки OPENAI_API_KEY и OPENAI_MODEL.'):null,
+  h('p',{class:'mut'},CH.prov==='auto'?'Автоматический режим: сначала Gemini, затем Groq при недоступности первого сервиса.':'Выбран провайдер: '+(CH.prov==='gemini'?'Gemini':'Groq')+'. Для ответа требуется настроить его API-ключ на сервере.'),
   h('div',{class:'chips'},['Проанализируй мой прогресс','Составь план на неделю','Какие веса взять в следующий раз?','Чего не хватает в моих тренировках?'].map(t=>h('button',{class:'b',disabled:off,onclick:()=>ask(t)},t))),
-  CH.prov!=='openai'?extCard():CH.msgs.map((m,i)=>{const last=CH.busy&&i===CH.msgs.length-1;return h('div',{class:'msg '+m.r,id:last?'stream':null},m.t||(last?'Думаю…':''))}),
+  CH.msgs.map((m,i)=>{const last=CH.busy&&i===CH.msgs.length-1;return h('div',{class:'msg '+m.r,id:last?'stream':null},m.t||(last?'Думаю…':''))}),
   CH.err&&h('p',{class:'err'},CH.err),
   h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'grow'},inp),h('button',{class:'b p',disabled:off,onclick:send},'Отправить')),
   CH.msgs.length?h('button',{class:'x',onclick:()=>{if(!CH.busy){CH.msgs=[];CH.err='';render()}}},'Очистить диалог'):null);
