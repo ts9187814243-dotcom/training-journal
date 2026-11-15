@@ -52,6 +52,21 @@ async function callGroq(messages, language, env) {
   return reply;
 }
 
+async function callCloudflare(messages, language, env) {
+  if (!env.AI) throw new Error("Cloudflare Workers AI binding не настроен");
+  const response = await env.AI.run(env.CF_AI_MODEL || "@cf/openai/gpt-oss-20b", {
+    messages: [
+      { role: "system", content: INSTRUCTIONS + " Отвечай строго на " + language + " языке." },
+      ...messages
+    ],
+    max_tokens: 700,
+    temperature: 0.7
+  });
+  const reply = (response?.response || response?.choices?.[0]?.message?.content || "").trim();
+  if (!reply) throw new Error("Cloudflare Workers AI вернул пустой ответ");
+  return reply;
+}
+
 async function coach(request, env, origin) {
   let body;
   try { body = await request.json(); } catch { return json({ error: "Некорректный JSON." }, 400, origin); }
@@ -63,14 +78,15 @@ async function coach(request, env, origin) {
   const input = history.filter(x => x && ["user", "assistant"].includes(x.role) && typeof x.content === "string")
     .map(x => ({ role: x.role, content: x.content.slice(0, 4000) }));
   input.push({ role: "user", content: "Данные журнала тренировок:\n" + (context || "Нет данных профиля и истории.") + "\n\nВопрос пользователя:\n" + message });
-  const requested = ["auto", "gemini", "groq"].includes(body?.provider) ? body.provider : "auto";
-  const order = requested === "auto" ? ["gemini", "groq"] : [requested];
+  const requested = ["auto", "cloudflare", "gemini", "groq"].includes(body?.provider) ? body.provider : "auto";
+  const order = requested === "auto" ? ["cloudflare", "groq"] : [requested];
   const errors = [];
   for (const name of order) {
+    if (name === "cloudflare" && !env.AI) { errors.push("Cloudflare Workers AI: binding не настроен"); continue; }
     if (name === "gemini" && !env.GEMINI_API_KEY) { errors.push("Gemini: ключ не настроен"); continue; }
     if (name === "groq" && !env.GROQ_API_KEY) { errors.push("Groq: ключ не настроен"); continue; }
     try {
-      const reply = name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
+      const reply = name === "cloudflare" ? await callCloudflare(input, language, env) : name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
       return json({ reply, provider: name }, 200, origin);
     } catch (error) {
       console.error(name + " API error:", error?.status || "", error?.message || error);
@@ -98,7 +114,7 @@ export default {
     }
     if (origin && origin !== ALLOWED_ORIGIN) return json({ error: "Origin not allowed" }, 403);
     if (url.pathname === "/api/health" && request.method === "GET") {
-      return json({ ok: true, providers: { gemini: Boolean(env.GEMINI_API_KEY), groq: Boolean(env.GROQ_API_KEY) } }, 200, origin);
+      return json({ ok: true, providers: { cloudflare: Boolean(env.AI), gemini: Boolean(env.GEMINI_API_KEY), groq: Boolean(env.GROQ_API_KEY) } }, 200, origin);
     }
     if (url.pathname === "/api/coach" && request.method === "POST") {
       const length = Number(request.headers.get("Content-Length") || 0);
