@@ -7,7 +7,19 @@ import {fileURLToPath} from 'node:url';
 
 const __dirname=path.dirname(fileURLToPath(import.meta.url));
 const app=express(),port=Number(process.env.PORT||3000);
+const allowedOrigins=new Set(['https://training-journal-3vk.pages.dev']);
 app.disable('x-powered-by');app.set('trust proxy',1);
+app.use((req,res,next)=>{
+ const origin=req.headers.origin;
+ if(origin&&allowedOrigins.has(origin)){
+  res.setHeader('Access-Control-Allow-Origin',origin);
+  res.setHeader('Vary','Origin');
+  res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type');
+ }
+ if(req.method==='OPTIONS')return res.sendStatus(204);
+ next();
+});
 app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'",'https://fonts.googleapis.com'],fontSrc:["'self'",'https://fonts.gstatic.com','data:'],imgSrc:["'self'",'data:'],connectSrc:["'self'"],objectSrc:["'none'"],baseUri:["'self'"],frameAncestors:["'none'"]}}}));
 app.use(express.json({limit:'64kb'}));
 app.use('/api/',rateLimit({windowMs:60000,limit:20,standardHeaders:'draft-8',legacyHeaders:false,message:{error:'Слишком много запросов. Подождите минуту и попробуйте снова.'}}));
@@ -17,10 +29,6 @@ const GEMINI_MODEL=process.env.GEMINI_MODEL||'gemini-2.5-flash';
 const GROQ_KEY=process.env.GROQ_API_KEY||'';
 const GROQ_MODEL=process.env.GROQ_MODEL||'openai/gpt-oss-120b';
 const instructions=`Ты — персональный тренер по силовым тренировкам в приложении-дневнике. Используй профиль и историю тренировок. Анализируй прогрессию нагрузок, объём, частоту, восстановление и баланс мышечных групп. Давай конкретные реалистичные рекомендации, не выдумывай прошлые результаты. Если данных мало, скажи об этом. Не ставь диагнозов и не назначай лечение. При боли, травмах или хронических заболеваниях рекомендуй консультацию врача. Не поощряй опасные максимальные попытки и тренировку через боль. Отвечай понятно и по делу, обычно до 250 слов.`;
-const providers={
- gemini:{key:GEMINI_KEY,model:GEMINI_MODEL},
- groq:{key:GROQ_KEY,model:GROQ_MODEL}
-};
 async function callGemini(messages,language){
  const prompt=messages.map(m=>(m.role==='assistant'?'Тренер':'Пользователь')+': '+m.content).join('\n\n');
  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(GEMINI_MODEL)+':generateContent?key='+encodeURIComponent(GEMINI_KEY);
@@ -39,7 +47,7 @@ async function callGroq(messages,language){
  if(!reply)throw new Error('Groq вернул пустой ответ');
  return reply;
 }
-app.get('/api/health',(_req,res)=>res.json({ok:true,providers:{gemini:Boolean(GEMINI_KEY),groq:Boolean(GROQ_KEY)}}));
+app.get('/api/health',(_req,res)=>res.json({ok:true,providers:{gemini:Boolean(GEMINI_KEY),groq:Boolean(GROQ_KEY)} }));
 app.post('/api/coach',async(req,res)=>{
  const language=({ru:'русском',en:'английском',de:'немецком',es:'испанском',fr:'французском',zh:'китайском',ja:'японском',hi:'хинди'})[req.body?.language]||'русском';
  const message=typeof req.body?.message==='string'?req.body.message.trim():'',context=typeof req.body?.context==='string'?req.body.context.slice(0,18000):'',history=Array.isArray(req.body?.history)?req.body.history.slice(-10):[];
@@ -50,7 +58,8 @@ app.post('/api/coach',async(req,res)=>{
  const order=requested==='auto'?['gemini','groq']:[requested];
  const errors=[];
  for(const name of order){
-  if(!providers[name].key){errors.push(name+': API-ключ не настроен');continue}
+  if(name==='gemini'&&!GEMINI_KEY){errors.push('Gemini: ключ не настроен');continue}
+  if(name==='groq'&&!GROQ_KEY){errors.push('Groq: ключ не настроен');continue}
   try{
    const reply=name==='gemini'?await callGemini(input,language):await callGroq(input,language);
    return res.json({reply,provider:name});
@@ -60,7 +69,7 @@ app.post('/api/coach',async(req,res)=>{
   }
  }
  const messageError=errors.length?errors.join('; '):'Нет доступного ИИ-провайдера';
- const status=order.length===1&&errors[0]?.includes('лимит')?429:503;
+ const status=order.length===1&&errors.some(x=>x.includes('лимит'))?429:503;
  res.status(status).json({error:'Не удалось получить ответ от ИИ-тренера. '+messageError+'. Проверьте API-ключи и лимиты.'});
 });
 app.use(express.static(path.join(__dirname,'public')));
