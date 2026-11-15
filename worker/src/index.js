@@ -99,7 +99,12 @@ async function callCloudflare(messages, language, env) {
       messageType: typeof choiceMessage,
       messageKeys: choiceMessage && typeof choiceMessage === "object" ? Object.keys(choiceMessage) : [],
       messageContentType: typeof choiceMessage?.content,
+      messageContentIsNull: choiceMessage?.content === null,
+      messageContentKeys: choiceMessage?.content && typeof choiceMessage.content === "object" ? Object.keys(choiceMessage.content) : [],
       messageContentIsArray: Array.isArray(choiceMessage?.content),
+      refusalType: typeof choiceMessage?.refusal,
+      reasoningContentType: typeof choiceMessage?.reasoning_content,
+      reasoningContentLength: typeof choiceMessage?.reasoning_content === "string" ? choiceMessage.reasoning_content.length : null,
       choiceTextType: typeof firstChoice?.text,
       finishReason: firstChoice?.finish_reason ?? null
     };
