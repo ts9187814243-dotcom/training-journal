@@ -62,8 +62,33 @@ async function callCloudflare(messages, language, env) {
     max_tokens: 700,
     temperature: 0.7
   });
-  const reply = (response?.response || response?.choices?.[0]?.message?.content || "").trim();
-  if (!reply) throw new Error("Cloudflare Workers AI вернул пустой ответ");
+  const contentText = (value) => {
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return value.map(part => {
+      if (typeof part === "string") return part;
+      return part?.text || part?.content || "";
+    }).join("");
+    return "";
+  };
+  const outputMessage = Array.isArray(response?.output)
+    ? response.output.find(item => item?.type === "message" || item?.role === "assistant")
+    : null;
+  const outputContent = Array.isArray(outputMessage?.content)
+    ? outputMessage.content.map(part => part?.text || part?.content || "").join("")
+    : "";
+  const reply = (
+    contentText(response?.response) ||
+    contentText(response?.output_text) ||
+    contentText(response?.choices?.[0]?.message?.content) ||
+    contentText(response?.result?.response) ||
+    outputContent
+  ).trim();
+  if (!reply) {
+    const shape = response && typeof response === "object"
+      ? Object.keys(response).join(",")
+      : typeof response;
+    throw new Error("Cloudflare Workers AI вернул ответ без распознанного текста (поля: " + shape + ")");
+  }
   return reply;
 }
 
