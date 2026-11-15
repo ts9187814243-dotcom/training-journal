@@ -278,6 +278,9 @@ function calV(){
 function ico(k){const s=h('span',{style:'display:flex'});s.innerHTML=`<svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>`+IC[k]+`</svg>`;return s}
 function render(){
  document.documentElement.lang=S.settings.language||'ru';
+ const brand=document.querySelector('h1');if(brand){brand.replaceChildren(h('span',{},'Журнал'),' ',h('i',{},'тренировок'));}
+ document.title=tr('Журнал тренировок');
+ const stop=document.getElementById('rs');if(stop)stop.textContent=tr('Стоп');
  const nav=document.getElementById('nav');nav.replaceChildren(...[['plans',tr('Планы')],['log',tr('Запись')],['progress',tr('Прогресс')],['coach',tr('Тренер')],['profile',tr('Профиль')]].map(([k,t])=>h('button',{'aria-current':String(tab===k),style:'--c:'+TC[k],onclick:()=>go(k)},ico(k),h('span',{},t))));
  {const av=document.getElementById('av');av.replaceChildren();const showGear=tab==='profile'&&!settingsOpen;const icon=h('span',{style:'display:flex;align-items:center;justify-content:center'});icon.innerHTML=showGear
  ? `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8h4l.55 2.45a7.1 7.1 0 0 1 1.55.9l2.4-.8 2 3.46-1.85 1.65a7.5 7.5 0 0 1 0 1.8l1.85 1.65-2 3.46-2.4-.8a7.1 7.1 0 0 1-1.55.9L14 19.9h-4l-.55-2.45a7.1 7.1 0 0 1-1.55-.9l-2.4.8-2-3.46 1.85-1.65a7.5 7.5 0 0 1 0-1.8L3.5 8.79l2-3.46 2.4.8a7.1 7.1 0 0 1 1.55-.9L10 2.8Z"/><circle cx="12" cy="11.8" r="3"/></svg>`
