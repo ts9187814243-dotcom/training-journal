@@ -87,10 +87,23 @@ async function callCloudflare(messages, language, env) {
     outputContent
   ).trim();
   if (!reply) {
-    const shape = response && typeof response === "object"
-      ? Object.keys(response).join(",")
-      : typeof response;
-    throw new Error("Cloudflare Workers AI вернул ответ без распознанного текста (поля: " + shape + ")");
+    // Log structure only: never include the user's prompt or model-generated content.
+    const firstChoice = Array.isArray(response?.choices) ? response.choices[0] : null;
+    const choiceMessage = firstChoice?.message;
+    const shape = {
+      topLevelKeys: response && typeof response === "object" ? Object.keys(response) : [],
+      choicesType: Array.isArray(response?.choices) ? "array" : typeof response?.choices,
+      choicesLength: Array.isArray(response?.choices) ? response.choices.length : null,
+      firstChoiceType: typeof firstChoice,
+      firstChoiceKeys: firstChoice && typeof firstChoice === "object" ? Object.keys(firstChoice) : [],
+      messageType: typeof choiceMessage,
+      messageKeys: choiceMessage && typeof choiceMessage === "object" ? Object.keys(choiceMessage) : [],
+      messageContentType: typeof choiceMessage?.content,
+      messageContentIsArray: Array.isArray(choiceMessage?.content),
+      choiceTextType: typeof firstChoice?.text,
+      finishReason: firstChoice?.finish_reason ?? null
+    };
+    throw new Error("Cloudflare Workers AI: не удалось извлечь текст; структура ответа: " + JSON.stringify(shape));
   }
   return reply;
 }
