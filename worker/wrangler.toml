@@ -1,0 +1,8 @@
+name = "training-journal-api"
+main = "src/index.js"
+compatibility_date = "2026-11-15"
+workers_dev = true
+
+[vars]
+GEMINI_MODEL = "gemini-2.5-flash"
+GROQ_MODEL = "openai/gpt-oss-120b"
