@@ -41,7 +41,7 @@ const fd=s=>new Date(s+'T12:00').toLocaleDateString(({ru:'ru-RU',en:'en-US',de:'
 const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)&&n>0?n:0};
 function h(t,a,...c){const e=document.createElement(t);for(const k in a||{}){const v=a[k];if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(k==='class')e.className=v;else if(v!=null&&v!==false)e.setAttribute(k,v===true?'':(['placeholder','aria-label','title'].includes(k)&&typeof v==='string'?tr(v):v))}c.flat(9).forEach(x=>{if(x==null||x===false)return;e.append(x.nodeType?x:document.createTextNode(typeof x==='string'?tr(x):x))});return e}
 let tab='plans',draft=null,sess=null,sel=null,err='';
-let fresh=false;const go=t=>{tab=t;err='';fresh=true;render()};
+let fresh=false;const go=t=>{tab=t;if(t==='profile')settingsOpen=false;err='';fresh=true;render()};
 const e1=(w,r)=>w*(1+r/30);
 const lastSets=ex=>{for(let i=S.logs.length-1;i>=0;i--){const en=S.logs[i].entries.find(x=>x.ex===ex);if(en)return en.sets.map(s=>({w:s.w,r:s.r}))}return [{w:'',r:''}]};
 
