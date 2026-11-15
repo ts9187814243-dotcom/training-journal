@@ -335,6 +335,17 @@ function settingsV(){
  box.append(h('div',{class:'card'},h('label',{class:'fl'},tr('Язык'),lang),h('label',{class:'fl'},tr('Тема оформления'),theme),h('label',{class:'fl'},tr('Единицы измерения'),units),h('label',{class:'fl'},tr('Таймер отдыха'),timer),h('label',{class:'fl row'},h('span',{class:'grow'},tr('Уведомления')),notify),h('p',{class:'mut'},'Уведомление отправляется при окончании таймера отдыха, пока браузер открыт. Браузер должен поддерживать уведомления.')));
  box.append(h('button',{class:'b',onclick:()=>{settingsOpen=false;render()}},tr('Назад в профиль')));return box;
 }
+function passwordEye(visible){
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+ svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('width','21');svg.setAttribute('height','21');
+ svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','1.8');
+ svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');
+ const add=(tag,attrs)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)el.setAttribute(k,attrs[k]);svg.appendChild(el)};
+ add('path',{d:'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z'});
+ add('circle',{cx:'12',cy:'12',r:'3'});
+ if(!visible)add('path',{d:'M3 3l18 18'});
+ return svg;
+}
 function profileV(){
  if(settingsOpen)return settingsV();
  const p=S.profile,lb=S.body[S.body.length-1],hh=num(p.h),bmi=lb&&hh?(lb.w/Math.pow(hh/100,2)).toFixed(1):null;
@@ -343,11 +354,11 @@ function profileV(){
   authUser
    ?h('div',{},h('p',{class:'mut'},'Вы вошли как '+authUser.email),
       h('p',{class:'mut',id:'cloud-status'},syncMessage),
-      h('button',{class:'b',onclick:async()=>{await syncCloudData()}},'Синхронизировать сейчас'),
+
       h('button',{class:'b',onclick:async()=>{await supabase.auth.signOut()}},'Выйти из аккаунта'))
    :h('div',{},h('p',{class:'mut'},'Войди или создай аккаунт, чтобы хранить планы и тренировки в облаке и открывать их на других устройствах.'),
       h('label',{class:'fl'},'Электронная почта',h('input',{id:'auth-email',type:'email',autocomplete:'email',placeholder:'name@example.com'})),
-      h('label',{class:'fl'},'Пароль',h('div',{class:'password-field'},h('input',{id:'auth-password',type:'password',autocomplete:'current-password',placeholder:'Не менее 6 символов'}),h('button',{type:'button',class:'password-toggle','aria-label':'Показать пароль',title:'Показать пароль',onclick:e=>{const input=document.getElementById('auth-password');const visible=input.type==='password';input.type=visible?'text':'password';e.currentTarget.setAttribute('aria-label',visible?'Скрыть пароль':'Показать пароль');e.currentTarget.title=visible?'Скрыть пароль':'Показать пароль';e.currentTarget.textContent=visible?'◉':'◎'}},'◎'))),
+      h('label',{class:'fl'},'Пароль',h('div',{class:'password-field'},h('input',{id:'auth-password',type:'password',autocomplete:'current-password',placeholder:'Не менее 6 символов'}),h('button',{type:'button',class:'password-toggle','aria-label':'Показать пароль',title:'Показать пароль',onclick:e=>{const input=document.getElementById('auth-password');const visible=input.type==='password';input.type=visible?'text':'password';e.currentTarget.setAttribute('aria-label',visible?'Скрыть пароль':'Показать пароль');e.currentTarget.title=visible?'Скрыть пароль':'Показать пароль';e.currentTarget.replaceChildren(passwordEye(visible))}},passwordEye(false)))),
       h('div',{class:'row'},
        h('button',{class:'b p',onclick:()=>{const e=document.getElementById('auth-email').value.trim(),p=document.getElementById('auth-password').value;if(!e||!p){document.getElementById('auth-status').textContent='Введи почту и пароль.';return}authAction('signin',e,p)}},'Войти'),
        h('button',{class:'b',onclick:()=>{const e=document.getElementById('auth-email').value.trim(),p=document.getElementById('auth-password').value;if(!e||!p){document.getElementById('auth-status').textContent='Введи почту и пароль.';return}authAction('signup',e,p)}},'Создать аккаунт')),
