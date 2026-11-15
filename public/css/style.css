@@ -157,7 +157,7 @@ nav button span:last-child{max-width:100%;overflow-wrap:anywhere}
 /* Desktop: move the existing tab controls into a vertical side rail. */
 @media(min-width:1024px){
   body{display:grid;grid-template-columns:220px minmax(0,1fr);column-gap:24px}
-  main{grid-column:2;width:100%;max-width:1280px;margin:0 auto;padding:0 0 32px}
+  main{grid-column:2;width:100%;max-width:1280px;margin:0;padding:0 0 32px}
   nav{
     left:20px;right:auto;top:50%;bottom:auto;transform:translateY(-50%);
     width:196px;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);
