@@ -185,7 +185,8 @@ bicycle:['M20 76H100','M30 70L52 52 74 62','M52 52L38 36M74 62L92 42','M38 36L24
 };
 const P=Object.fromEntries(Object.entries(POSE).map(([k,v])=>[k,{h:[60,18],b:[v[1],v[2]],s:'<path d="'+v[0]+'"/>',e:v[3]?'<path d="'+v[3]+'"/>':''}]));
 function pic(k){const p=P[k]||P.squat;return "<svg viewBox='0 0 120 90' aria-hidden='true' fill='none' stroke-linecap='round' stroke-linejoin='round'><path d='M6 82H114' stroke='var(--line)' stroke-width='2'/><g stroke='var(--mut)' stroke-width='2'>"+(p.s||'')+"</g><g stroke='var(--ink)' stroke-width='4'><polyline points='50,25 60,42 60,60'/><polyline points='60,60 52,79'/><polyline points='60,60 70,79'/>"+p.b.map(l=>"<polyline points='"+l+"'/>").join('')+"<circle cx='60' cy='18' r='6' fill='var(--ink)'/></g><g stroke='var(--acc)' stroke-width='4'>"+(p.e||'')+"</g></svg>"}
-function thumb(n,sm){const x=EXM[n];if(!x)return null;const s=h('span',{class:'th'+(sm?' sm':'')});s.innerHTML=pic(x.p);return s}
+const EXIMG={bench:'bench-press.webp',incline:'incline-dumbbell-press.webp',dbbench:'dumbbell-fly.webp',crossover:'cable-crossover.webp',dead:'deadlift.webp',rdl:'romanian-deadlift.webp',pull:'pull-up.webp',pulldown:'lat-pulldown.webp',squat:'barbell-squat.webp',legpress:'leg-press.webp'};
+function thumb(n,sm){const x=EXM[n];if(!x)return null;const s=h('span',{class:'th'+(sm?' sm':'')});const file=EXIMG[x.p];if(file){const im=h('img',{src:'/images/exercises/'+file,alt:x.n,loading:'lazy'});s.append(im)}else s.innerHTML=pic(x.p);return s}
 const pko={plans:false,log:false};
 function exPicker(k,onPick){
  const q=h('input',{type:'search',placeholder:'Поиск упражнения','aria-label':'Поиск упражнения'});
