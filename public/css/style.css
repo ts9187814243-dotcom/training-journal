@@ -41,8 +41,12 @@ textarea{width:100%;margin:8px 0}
 .th.sm{width:56px;height:42px}
 .th svg,.th img{width:100%;height:100%;display:block}.th img{object-fit:cover;border-radius:7px}
 .pk{max-height:340px;overflow-y:auto;margin-top:8px}
-.pi{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:6px 2px;color:var(--ink);font:inherit;cursor:pointer}
-.pi small{display:block;color:var(--mut)}
+.pi{display:flex;gap:10px;align-items:center;width:100%;min-width:0;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:7px 2px;color:var(--ink);font:inherit;cursor:pointer;overflow:hidden}
+.pi>.th{flex:0 0 84px}
+.pi>span:not(.th){display:block;flex:1 1 0;min-width:0;overflow:hidden}
+.pi b{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+.pi small{display:block;color:var(--mut);white-space:normal;overflow-wrap:anywhere;line-height:1.25;margin-top:3px}
+@media(max-width:480px){.pi{gap:9px;padding:7px 0;align-items:center}.pi>.th{flex-basis:68px;width:68px;height:56px}.pi b{font-size:15px}.pi small{font-size:12px}}
 .msg{padding:10px 12px;border-radius:12px;margin:8px 0;white-space:pre-wrap;max-width:92%}
 .msg.u{background:var(--acc);color:var(--onacc);margin-left:auto}
 .msg.a{background:var(--surf);border:1px solid var(--line)}
