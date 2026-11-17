@@ -376,7 +376,7 @@ function showDeleteAccountDialog(){
     method:'POST',headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'}
    });
    const result=await response.json().catch(()=>({}));
-   if(!response.ok)throw new Error(result.error||'Delete failed');
+   if(!response.ok){const diagnostic=[result.error,result.stage?'stage='+result.stage:'',result.upstreamStatus?'HTTP '+result.upstreamStatus:'',result.detail||''].filter(Boolean).join(' | ');throw new Error(diagnostic||'Delete failed');}
    clearTimeout(syncTimer);authUser=null;S={workouts:[],logs:[],body:[],profile:{},settings:{language:'ru',theme:'system',units:'kg',rest:90,notifications:false}};
    localStorage.removeItem(KEY);await supabase.auth.signOut({scope:'local'}).catch(()=>{});
    settingsOpen=false;overlay.remove();render();
