@@ -4,6 +4,7 @@ compatibility_date = "2026-11-15"
 workers_dev = true
 
 [vars]
+SUPABASE_URL = "https://wxpvlphfblxvijwrwtjm.supabase.co"
 GEMINI_MODEL = "gemini-2.5-flash"
 GROQ_MODEL = "openai/gpt-oss-120b"
 
