@@ -138,7 +138,7 @@ async function deleteAccount(request, env, origin) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return json({ error: "Требуется авторизация." }, 401, origin);
 
-  const base = env.SUPABASE_URL.replace(/\\/$/, "");
+  const base = (env.SUPABASE_URL || "https://wxpvlphfblxvijwrwtjm.supabase.co").replace(/\/$/, "");
   const userResponse = await fetch(base + "/auth/v1/user", {
     headers: { "apikey": env.SUPABASE_SERVICE_ROLE_KEY, "Authorization": "Bearer " + token }
   });
