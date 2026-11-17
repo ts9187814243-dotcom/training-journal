@@ -60,7 +60,25 @@ async function authAction(mode,email,password){
  const result=mode==='signup'
   ?await supabase.auth.signUp({email,password})
   :await supabase.auth.signInWithPassword({email,password});
- if(result.error){if(status)status.textContent=result.error.message;return}
+ if(result.error){
+  if(status){
+   const lang=S.settings?.language||'ru';
+   const invalidCredentials={
+    ru:'Неверный адрес электронной почты или пароль.',
+    en:'Incorrect email address or password.',
+    de:'Falsche E-Mail-Adresse oder falsches Passwort.',
+    es:'Correo electrónico o contraseña incorrectos.',
+    fr:'Adresse e-mail ou mot de passe incorrect.',
+    zh:'电子邮箱或密码不正确。',
+    ja:'メールアドレスまたはパスワードが正しくありません。',
+    hi:'ईमेल पता या पासवर्ड गलत है।'
+   };
+   status.textContent=result.error.message==='Invalid login credentials'
+    ?(invalidCredentials[lang]||invalidCredentials.ru)
+    :result.error.message;
+  }
+  return;
+ }
  if(result.data.session?.user){
   try{await setAuthenticatedUser(result.data.session.user)}
   catch(error){if(status)status.textContent='Ошибка загрузки данных: '+error.message}
