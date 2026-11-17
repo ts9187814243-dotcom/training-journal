@@ -481,6 +481,39 @@ function calV(){
   sl.length?sl.map(l=>h('div',{class:'card'},h('b',{},l.name),h('p',{class:'mut',style:'margin:6px 0 0'},l.entries.map(sx).join('; ')))):h('p',{class:'mut'},selDay===today()?'Сегодня тренировок ещё нет.':'В этот день тренировок нет.'));
 }
 function ico(k){const s=h('span',{style:'display:flex'});s.innerHTML=`<svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>`+IC[k]+`</svg>`;return s}
+
+function enhanceSelects(root){
+ root.querySelectorAll('select:not([data-customized])').forEach((select,index)=>{
+  select.dataset.customized='true';
+  const wrap=document.createElement('div');wrap.className='select-wrap';
+  select.parentNode.insertBefore(wrap,select);wrap.append(select);
+  select.classList.add('native-select-source');
+  const label=select.getAttribute('aria-label')||select.closest('label')?.childNodes[0]?.textContent?.trim()||'Выбрать значение';
+  const trigger=document.createElement('button');trigger.type='button';trigger.className='select-trigger';trigger.setAttribute('aria-label',label);trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');
+  const value=document.createElement('span');value.className='select-value';
+  const chevron=document.createElement('span');chevron.className='select-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';
+  trigger.append(value,chevron);
+  const popup=document.createElement('div');popup.className='select-popover';popup.hidden=true;popup.setAttribute('role','listbox');
+  const options=()=>[...select.options].filter(o=>!o.disabled);
+  let active= Math.max(0,options().findIndex(o=>o.value===select.value));
+  const sync=()=>{const opt=select.options[select.selectedIndex];value.textContent=opt?.textContent||'';popup.querySelectorAll('[role=option]').forEach((b,i)=>{b.setAttribute('aria-selected',String(options()[i]===opt));b.classList.toggle('is-selected',options()[i]===opt)})};
+  const close=(focus=false)=>{popup.hidden=true;trigger.setAttribute('aria-expanded','false');wrap.classList.remove('is-open');if(focus)trigger.focus()};
+  const choose=i=>{const opts=options();if(!opts.length)return;active=(i+opts.length)%opts.length;select.value=opts[active].value;select.dispatchEvent(new Event('change',{bubbles:true}));sync();close(true)};
+  options().forEach((opt,i)=>{const item=document.createElement('button');item.type='button';item.className='select-option';item.setAttribute('role','option');item.textContent=opt.textContent;item.addEventListener('click',()=>choose(i));popup.append(item)});
+  const open=()=>{if(!options().length)return;popup.hidden=false;trigger.setAttribute('aria-expanded','true');wrap.classList.add('is-open');active=Math.max(0,options().findIndex(o=>o.value===select.value));popup.querySelectorAll('.select-option')[active]?.scrollIntoView({block:'nearest'})};
+  trigger.addEventListener('click',()=>popup.hidden?open():close());
+  trigger.addEventListener('keydown',e=>{
+   const opts=options();if(!opts.length)return;
+   if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();if(popup.hidden)open();if(e.key==='Home')active=0;else if(e.key==='End')active=opts.length-1;else active=(active+(e.key==='ArrowDown'?1:-1)+opts.length)%opts.length;popup.querySelectorAll('.select-option').forEach((b,i)=>b.classList.toggle('is-active',i===active));popup.querySelectorAll('.select-option')[active]?.scrollIntoView({block:'nearest'})}
+   else if(e.key==='Enter'||e.key===' '){e.preventDefault();if(popup.hidden)open();else choose(active)}
+   else if(e.key==='Escape'&&!popup.hidden){e.preventDefault();close(true)}
+   else if(e.key.length===1&&!e.ctrlKey&&!e.altKey){const q=e.key.toLocaleLowerCase();const i=opts.findIndex((o,n)=>n>active&&o.textContent.trim().toLocaleLowerCase().startsWith(q));const next=i<0?opts.findIndex(o=>o.textContent.trim().toLocaleLowerCase().startsWith(q)):i;if(next>=0){active=next;if(popup.hidden)open();popup.querySelectorAll('.select-option').forEach((b,n)=>b.classList.toggle('is-active',n===active))}}
+  });
+  select.addEventListener('change',sync);
+  document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target))close()});
+  wrap.append(trigger,popup);sync();
+ });
+}
 function render(){
  document.documentElement.lang=S.settings.language||'ru';
  const brand=document.querySelector('h1');if(brand){brand.replaceChildren(h('span',{},'Журнал'),' ',h('i',{},'тренировок'));}
@@ -490,7 +523,7 @@ function render(){
  {const av=document.getElementById('av');av.replaceChildren();const showGear=tab==='profile'&&!settingsOpen;const icon=h('span',{style:'display:flex;align-items:center;justify-content:center'});icon.innerHTML=showGear
  ? `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8h4l.55 2.45a7.1 7.1 0 0 1 1.55.9l2.4-.8 2 3.46-1.85 1.65a7.5 7.5 0 0 1 0 1.8l1.85 1.65-2 3.46-2.4-.8a7.1 7.1 0 0 1-1.55.9L14 19.9h-4l-.55-2.45a7.1 7.1 0 0 1-1.55-.9l-2.4.8-2-3.46 1.85-1.65a7.5 7.5 0 0 1 0-1.8L3.5 8.79l2-3.46 2.4.8a7.1 7.1 0 0 1 1.55-.9L10 2.8Z"/><circle cx="12" cy="11.8" r="3"/></svg>`
  : `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>`;
- av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());
+ av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());enhanceSelects(vv);
 }
 render();
 initSupabase();
