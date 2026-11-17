@@ -129,6 +129,46 @@ async function callCloudflare(messages, language, env) {
   throw new Error("Cloudflare Workers AI: не удалось получить ответ после повторной генерации");
 }
 
+
+async function deleteAccount(request, env, origin) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return json({ error: "Удаление аккаунта пока не настроено на сервере." }, 503, origin);
+  }
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!token) return json({ error: "Требуется авторизация." }, 401, origin);
+
+  const base = env.SUPABASE_URL.replace(/\\/$/, "");
+  const userResponse = await fetch(base + "/auth/v1/user", {
+    headers: { "apikey": env.SUPABASE_SERVICE_ROLE_KEY, "Authorization": "Bearer " + token }
+  });
+  const user = await userResponse.json().catch(() => ({}));
+  if (!userResponse.ok || !user.id) return json({ error: "Сессия недействительна. Войдите снова." }, 401, origin);
+
+  const headers = {
+    "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
+    "Authorization": "Bearer " + env.SUPABASE_SERVICE_ROLE_KEY
+  };
+  const dataResponse = await fetch(base + "/rest/v1/user_data?user_id=eq." + encodeURIComponent(user.id), {
+    method: "DELETE", headers
+  });
+  if (!dataResponse.ok) {
+    console.error("Account data deletion failed:", dataResponse.status);
+    return json({ error: "Не удалось удалить облачные данные. Аккаунт не удалён." }, 502, origin);
+  }
+
+  const deleteResponse = await fetch(base + "/auth/v1/admin/users/" + encodeURIComponent(user.id), {
+    method: "DELETE",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ should_soft_delete: false })
+  });
+  if (!deleteResponse.ok) {
+    console.error("Auth account deletion failed:", deleteResponse.status);
+    return json({ error: "Не удалось удалить аккаунт. Облачные данные удалены; повторите попытку." }, 502, origin);
+  }
+  return json({ ok: true }, 200, origin);
+}
+
 async function coach(request, env, origin) {
   let body;
   try { body = await request.json(); } catch { return json({ error: "Некорректный JSON." }, 400, origin); }
@@ -178,7 +218,7 @@ export default {
     if (url.pathname === "/api/health" && request.method === "GET") {
       return json({ ok: true, providers: { cloudflare: Boolean(env.AI), gemini: Boolean(env.GEMINI_API_KEY), groq: Boolean(env.GROQ_API_KEY) } }, 200, origin);
     }
-    if (url.pathname === "/api/coach" && request.method === "POST") {
+    if (url.pathname === "/api/account/delete" && request.method === "POST") {\n      return deleteAccount(request, env, origin);\n    }\n    if (url.pathname === "/api/coach" && request.method === "POST") {
       const length = Number(request.headers.get("Content-Length") || 0);
       if (length > 65536) return json({ error: "Запрос слишком большой." }, 413, origin);
       return coach(request, env, origin);
