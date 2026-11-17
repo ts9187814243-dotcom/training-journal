@@ -218,7 +218,9 @@ export default {
     if (url.pathname === "/api/health" && request.method === "GET") {
       return json({ ok: true, providers: { cloudflare: Boolean(env.AI), gemini: Boolean(env.GEMINI_API_KEY), groq: Boolean(env.GROQ_API_KEY) } }, 200, origin);
     }
-    if (url.pathname === "/api/account/delete" && request.method === "POST") {\n      return deleteAccount(request, env, origin);\n    }\n    if (url.pathname === "/api/coach" && request.method === "POST") {
+    if (url.pathname === "/api/account/delete" && request.method === "POST") {
+      return deleteAccount(request, env, origin);
+    }\n    if (url.pathname === "/api/coach" && request.method === "POST") {
       const length = Number(request.headers.get("Content-Length") || 0);
       if (length > 65536) return json({ error: "Запрос слишком большой." }, 413, origin);
       return coach(request, env, origin);
