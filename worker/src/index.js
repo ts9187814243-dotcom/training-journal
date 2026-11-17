@@ -131,35 +131,42 @@ async function callCloudflare(messages, language, env) {
 
 
 async function deleteAccount(request, env, origin) {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-    return json({ error: "Удаление аккаунта пока не настроено на сервере." }, 503, origin);
+  const base = (env.SUPABASE_URL || "https://wxpvlphfblxvijwrwtjm.supabase.co").replace(/\/$/, "");
+  const secretKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const legacyAdminKey = env.SUPABASE_AUTH_ADMIN_KEY;
+  if (!secretKey || !legacyAdminKey) {
+    return json({ error: "Удаление аккаунта не настроено: проверьте серверные ключи Supabase." }, 503, origin);
   }
+
   const authorization = request.headers.get("Authorization") || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return json({ error: "Требуется авторизация." }, 401, origin);
 
-  const base = (env.SUPABASE_URL || "https://wxpvlphfblxvijwrwtjm.supabase.co").replace(/\/$/, "");
+  // Verify the caller's session using the user's JWT and the modern project API key.
   const userResponse = await fetch(base + "/auth/v1/user", {
-    headers: { "apikey": env.SUPABASE_SERVICE_ROLE_KEY, "Authorization": "Bearer " + token }
+    headers: { "apikey": secretKey, "Authorization": "Bearer " + token }
   });
   const user = await userResponse.json().catch(() => ({}));
   if (!userResponse.ok || !user.id) return json({ error: "Сессия недействительна. Войдите снова." }, 401, origin);
 
-  const headers = {
-    "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
-    "Authorization": "Bearer " + env.SUPABASE_SERVICE_ROLE_KEY
-  };
+  // Modern sb_secret keys are API keys, not JWTs: use them only as apikey.
   const dataResponse = await fetch(base + "/rest/v1/user_data?user_id=eq." + encodeURIComponent(user.id), {
-    method: "DELETE", headers
+    method: "DELETE",
+    headers: { "apikey": secretKey, "Prefer": "return=minimal" }
   });
   if (!dataResponse.ok) {
     console.error("Account data deletion failed:", dataResponse.status);
     return json({ error: "Не удалось удалить облачные данные. Аккаунт не удалён." }, 502, origin);
   }
 
+  // Supabase Auth Admin currently requires a JWT-style admin bearer credential.
   const deleteResponse = await fetch(base + "/auth/v1/admin/users/" + encodeURIComponent(user.id), {
     method: "DELETE",
-    headers: { ...headers, "Content-Type": "application/json" },
+    headers: {
+      "apikey": legacyAdminKey,
+      "Authorization": "Bearer " + legacyAdminKey,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ should_soft_delete: false })
   });
   if (!deleteResponse.ok) {
