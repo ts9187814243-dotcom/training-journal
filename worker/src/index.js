@@ -155,8 +155,9 @@ async function deleteAccount(request, env, origin) {
     headers: { "apikey": secretKey, "Authorization": "Bearer " + legacyAdminKey, "Prefer": "return=minimal" }
   });
   if (!dataResponse.ok) {
-    console.error("Account data deletion failed:", dataResponse.status);
-    return json({ error: "Не удалось удалить облачные данные. Аккаунт не удалён." }, 502, origin);
+    const detail = (await dataResponse.text()).slice(0, 500);
+    console.error("Account data deletion failed:", dataResponse.status, detail);
+    return json({ error: "Не удалось удалить облачные данные.", stage: "data_delete", upstreamStatus: dataResponse.status, detail }, 502, origin);
   }
 
   // Supabase Auth Admin currently requires a JWT-style admin bearer credential.
@@ -170,8 +171,9 @@ async function deleteAccount(request, env, origin) {
     body: JSON.stringify({ should_soft_delete: false })
   });
   if (!deleteResponse.ok) {
-    console.error("Auth account deletion failed:", deleteResponse.status);
-    return json({ error: "Не удалось удалить аккаунт. Облачные данные удалены; повторите попытку." }, 502, origin);
+    const detail = (await deleteResponse.text()).slice(0, 500);
+    console.error("Auth account deletion failed:", deleteResponse.status, detail);
+    return json({ error: "Не удалось удалить аккаунт. Данные приложения уже удалены.", stage: "auth_delete", upstreamStatus: deleteResponse.status, detail }, 502, origin);
   }
   return json({ ok: true }, 200, origin);
 }
