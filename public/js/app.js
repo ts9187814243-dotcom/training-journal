@@ -381,7 +381,8 @@ function showDeleteAccountDialog(){
    localStorage.removeItem(KEY);await supabase.auth.signOut({scope:'local'}).catch(()=>{});
    settingsOpen=false;overlay.remove();render();
   }catch(error){
-   status.textContent=tr('Не удалось удалить аккаунт. Попробуйте ещё раз.');
+   console.error('Account deletion failed:',error);
+   status.textContent=tr('Не удалось удалить аккаунт. Попробуйте ещё раз.')+(error.message&&error.message!=='Delete failed'?' ('+error.message+')':'');
    confirm.disabled=false;cancel.disabled=false;
   }
  }},tr('Удалить навсегда'));
