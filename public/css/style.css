@@ -211,3 +211,15 @@ nav button span:last-child{max-width:100%;overflow-wrap:anywhere}
 .password-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:var(--mut);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .password-toggle:hover{background:var(--tint);color:var(--ink)}
 .password-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+
+/* Account deletion confirmation */
+.danger-zone{margin-top:18px;border:1px solid rgba(190,45,45,.28);background:var(--surf)}
+.danger-button{background:#a92e35!important;border-color:#a92e35!important;color:#fff!important}
+.danger-button:disabled{opacity:.6;cursor:wait}
+.confirm-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(8,18,22,.62);backdrop-filter:blur(4px)}
+.confirm-dialog{width:min(100%,460px);max-height:calc(100dvh - 40px);overflow:auto;padding:24px;border-radius:24px;background:var(--surf);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.confirm-dialog h2{margin:0 0 12px}
+.confirm-dialog p{line-height:1.55;overflow-wrap:anywhere}
+.confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:22px}
+.confirm-dialog [role=status]{min-height:1.4em;margin-bottom:0}
+@media(max-width:420px){.confirm-dialog{padding:20px;border-radius:20px}.confirm-actions>*{flex:1 1 100%}}
