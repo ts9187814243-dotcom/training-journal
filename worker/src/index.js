@@ -152,7 +152,7 @@ async function deleteAccount(request, env, origin) {
   // Modern sb_secret keys are API keys, not JWTs: use them only as apikey.
   const dataResponse = await fetch(base + "/rest/v1/user_data?user_id=eq." + encodeURIComponent(user.id), {
     method: "DELETE",
-    headers: { "apikey": secretKey, "Prefer": "return=minimal" }
+    headers: { "apikey": secretKey, "Authorization": "Bearer " + legacyAdminKey, "Prefer": "return=minimal" }
   });
   if (!dataResponse.ok) {
     console.error("Account data deletion failed:", dataResponse.status);
