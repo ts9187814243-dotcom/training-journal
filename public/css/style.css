@@ -306,3 +306,14 @@ nav button[aria-current="true"]{background:rgba(70,190,196,.13)}
 
 /* Desktop floating navigation: restore centered inset bar instead of half-screen positioning. */
 @media(min-width:1024px){nav{left:12px;right:12px;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:auto;transform:none;margin:0;border-radius:24px}}
+
+/* Desktop-only vertical navigation rail; mobile layout remains unchanged. */
+@media(min-width:1024px){
+ body{display:grid;grid-template-columns:220px minmax(0,1fr);column-gap:24px;align-items:start}
+ main{grid-column:2;width:100%;max-width:1280px;margin:0;padding:0 0 40px}
+ nav{position:fixed;left:20px;right:auto;top:50%;bottom:auto;transform:translateY(-50%);width:196px;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid rgba(90,190,195,.28);border-radius:24px;box-shadow:0 10px 35px rgba(15,80,90,.16)}
+ nav button{flex:0 0 auto;width:100%;min-height:48px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:8px 12px;font-size:14px;text-align:left;border-radius:14px}
+ nav button span:first-child{width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:10px}
+ nav button span:last-child{text-align:left}
+ #rest{bottom:24px}
+}
