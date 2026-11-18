@@ -1,5 +1,5 @@
-const CACHE_NAME='training-journal-pwa-v2';
-const STATIC_FILES=['/','/index.html','/css/style.css','/js/app.js','/manifest.webmanifest','/icons/app-icon.svg'];
+const CACHE_NAME='training-journal-pwa-v3';
+const STATIC_FILES=['/','/index.html','/css/style.css','/js/app.js','/manifest.webmanifest','/icons/app-icon.jpg'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
