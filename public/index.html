@@ -3,12 +3,34 @@ let installPrompt=null;
 const installButton=document.getElementById('install-app');
 window.addEventListener('beforeinstallprompt',event=>{
  event.preventDefault();installPrompt=event;installButton.hidden=false;
+ installButton.textContent='Установить';
+});
+window.addEventListener('appinstalled',()=>{
+ installPrompt=null;installButton.hidden=true;
 });
 installButton.addEventListener('click',async()=>{
- if(!installPrompt)return;
+ if(!installPrompt){
+  alert('Чтобы установить журнал, откройте меню браузера (\u22ee) и выберите «Установить приложение» или «Установить Training Journal».');
+  return;
+ }
  installButton.disabled=true;
- try{await installPrompt.prompt();await installPrompt.userChoice;}catch(e){}
- installPrompt=null;installButton.hidden=true;installButton.disabled=false;
+ try{
+  const promptEvent=installPrompt;
+  await promptEvent.prompt();
+  const choice=await promptEvent.userChoice;
+  installPrompt=null;
+  if(choice && choice.outcome==='accepted'){
+   installButton.hidden=true;
+  }else{
+   installButton.hidden=false;
+   installButton.textContent='Как установить';
+  }
+ }catch(e){
+  installPrompt=null;
+  installButton.hidden=false;
+  installButton.textContent='Как установить';
+ }finally{
+  installButton.disabled=false;
+ }
 });
-window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.hidden=true;});
 </script></body></html>
