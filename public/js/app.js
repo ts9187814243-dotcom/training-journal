@@ -311,7 +311,7 @@ function progress(){
  const exs=[...new Set(S.logs.flatMap(l=>l.entries.map(e=>e.ex)))];
  if(!exs.length)return h('div',{},h('h2',{},'Прогресс'),h('p',{class:'mut'},'Здесь появятся рекорды и графики после первой записанной тренировки.'),h('button',{class:'b p',onclick:()=>go('log')},'Записать тренировку'),body());
  if(!exs.includes(sel))sel=exs[0];
- const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);cutoff.setHours(0,0,0,0);const cutoffISO=cutoff.toISOString().slice(0,10);
+ const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);cutoff.setHours(0,0,0,0);const cutoffISO=cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
  const fullHist=S.logs.map(l=>({l,en:l.entries.find(e=>e.ex===sel)})).filter(x=>x.en);
  const hist=progressRange==='week'?fullHist.filter(x=>x.l.date>=cutoffISO):fullHist;
  const all=hist.flatMap(x=>x.en.sets),hasW=all.some(s=>s.w>0);
