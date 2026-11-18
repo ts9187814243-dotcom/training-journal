@@ -353,7 +353,7 @@ async function ask(text){
  }catch(e){CH.err=e.message||'Ошибка соединения с сервером. Проверьте подключение и попробуйте ещё раз.';if(!ai.t)CH.msgs.pop()}
  CH.busy=false;render();window.scrollTo({top:document.body.scrollHeight});
 }
-function provSel(){const s=h('select',{'aria-label':'Провайдер ИИ',style:'width:auto'},[['auto','Автоматически (Cloudflare AI → Groq)'],['cloudflare','Cloudflare Workers AI'],['gemini','Gemini'],['groq','Groq']].map(([k,t])=>h('option',{value:k,selected:CH.prov===k},t)));s.addEventListener('change',()=>{CH.prov=s.value;render()});return s}
+function provSel(){const s=h('select',{'aria-label':'Провайдер ИИ',style:'width:auto'},[['auto','Автоматически (Cloudflare AI → Groq)'],['cloudflare','Cloudflare Workers AI'],['groq','Groq']].map(([k,t])=>h('option',{value:k,selected:CH.prov===k},t)));s.addEventListener('change',()=>{CH.prov=s.value;render()});return s}
 
 // Каталог готовых программ тренировок
 let libraryOpen=false,libraryFilter='Все';
@@ -391,10 +391,10 @@ function coachV(){
  inp.addEventListener('input',()=>cDraft=inp.value);
  const send=()=>{const t=inp.value.trim();if(t){cDraft='';ask(t)}};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
- const off=CH.busy;
+ const off=CH.busy;if(CH.prov==='gemini')CH.prov='auto';
  return h('div',{},h('button',{class:'b p',style:'width:100%;margin:8px 0 18px',onclick:()=>{libraryOpen=true;render()}},'🏋️ Готовые тренировки'),h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
-  h('p',{class:'mut'},CH.prov==='auto'?'Автоматический режим: сначала Cloudflare Workers AI, затем Groq при недоступности первого сервиса.':'Выбран провайдер: '+(CH.prov==='cloudflare'?'Cloudflare Workers AI':CH.prov==='gemini'?'Gemini':'Groq')+'.'),
+
   h('div',{class:'chips'},['Проанализируй мой прогресс','Составь план на неделю','Какие веса взять в следующий раз?','Чего не хватает в моих тренировках?'].map(t=>h('button',{class:'b',disabled:off,onclick:()=>ask(t)},t))),
   CH.msgs.map((m,i)=>{const last=CH.busy&&i===CH.msgs.length-1;return h('div',{class:'msg '+m.r,id:last?'stream':null},m.t||(last?'Думаю…':''))}),
   CH.err&&h('p',{class:'err'},CH.err),
