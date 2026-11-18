@@ -319,7 +319,7 @@ function progress(){
  const controls=h('div',{class:'row',style:'flex-wrap:wrap;margin:10px 0'},
   h('button',{class:'b '+(progressRange==='week'?'p':''),onclick:()=>{progressRange='week';render()}},'Последние 7 дней'),
   h('button',{class:'b '+(progressRange==='all'?'p':''),onclick:()=>{progressRange='all';render()}},'Всё время'));
- if(!all.length)return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x)),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
+ if(!all.length)return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
  const pts=hist.map(x=>({d:fd(x.l.date),v:hasW?Math.max(...x.en.sets.map(s=>e1(s.w,s.r))):Math.max(...x.en.sets.map(s=>s.r))}));
  const mw=Math.max(...all.map(s=>s.w)),mr=Math.max(...all.map(s=>s.r)),vol=all.reduce((a,s)=>a+(s.w||1)*s.r,0);
  return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
