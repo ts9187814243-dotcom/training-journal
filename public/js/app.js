@@ -354,13 +354,44 @@ async function ask(text){
  CH.busy=false;render();window.scrollTo({top:document.body.scrollHeight});
 }
 function provSel(){const s=h('select',{'aria-label':'Провайдер ИИ',style:'width:auto'},[['auto','Автоматически (Cloudflare AI → Groq)'],['cloudflare','Cloudflare Workers AI'],['gemini','Gemini'],['groq','Groq']].map(([k,t])=>h('option',{value:k,selected:CH.prov===k},t)));s.addEventListener('change',()=>{CH.prov=s.value;render()});return s}
+
+// Каталог готовых программ тренировок
+let libraryOpen=false,libraryFilter='Все';
+const TRAINING_LIBRARY=[
+{cat:'Грудь',name:'Грудь',ex:['Жим штанги лёжа','Жим штанги на наклонной скамье','Сведение рук в тренажёре «бабочка»','Сведение рук в кроссовере','Отжимания от пола']},
+{cat:'Спина',name:'Спина',ex:['Подтягивания','Тяга штанги в наклоне','Тяга верхнего блока к груди','Тяга нижнего блока к поясу','Гиперэкстензия']},
+{cat:'Плечи',name:'Плечи',ex:['Жим штанги стоя','Махи гантелей в стороны','Разведение гантелей в наклоне','Тяга каната к лицу']},
+{cat:'Бицепс',name:'Бицепс',ex:['Подъём штанги на бицепс','Сгибание рук с гантелями','Молотковые сгибания','Сгибание рук на скамье Скотта']},
+{cat:'Трицепс',name:'Трицепс',ex:['Отжимания на брусьях','Французский жим лёжа','Разгибание рук на верхнем блоке','Разгибание рук из-за головы с гантелью']},
+{cat:'Ноги',name:'Ноги',ex:['Присед со штангой','Жим ногами','Румынская тяга','Болгарские выпады','Сгибание ног лёжа','Подъём на носки стоя']},
+{cat:'Пресс',name:'Пресс',ex:['Скручивания','Подъём ног в висе','Планка','Боковая планка','Dead bug («мёртвый жук»)']},
+{cat:'Комбинации',name:'Грудь + трицепс',ex:['Жим штанги лёжа','Жим гантелей на наклонной скамье','Сведение рук в тренажёре «бабочка»','Отжимания на брусьях','Разгибание рук на верхнем блоке','Французский жим лёжа']},
+{cat:'Комбинации',name:'Спина + бицепс',ex:['Подтягивания','Тяга штанги в наклоне','Тяга верхнего блока к груди','Тяга нижнего блока к поясу','Подъём штанги на бицепс','Молотковые сгибания']},
+{cat:'Комбинации',name:'Плечи + руки',ex:['Жим гантелей сидя','Махи гантелей в стороны','Разведение гантелей в наклоне','Подъём штанги на бицепс','Разгибание рук на верхнем блоке']},
+{cat:'Комбинации',name:'Ноги + пресс',ex:['Присед со штангой','Румынская тяга','Жим ногами','Сгибание ног лёжа','Подъём на носки стоя','Скручивания','Планка']},
+{cat:'Комбинации',name:'Верх тела',ex:['Жим штанги лёжа','Тяга штанги в наклоне','Жим гантелей сидя','Тяга верхнего блока к груди','Махи гантелей в стороны','Молотковые сгибания','Разгибание рук на верхнем блоке']},
+{cat:'Комбинации',name:'Низ тела',ex:['Присед со штангой','Румынская тяга','Жим ногами','Болгарские выпады','Сгибание ног лёжа','Ягодичный мост со штангой','Подъём на носки стоя']},
+{cat:'Комбинации',name:'Full Body',ex:['Присед со штангой','Жим штанги лёжа','Тяга верхнего блока к груди','Румынская тяга','Жим гантелей сидя','Скручивания']}
+];
+function trainingLibraryV(){
+ const categories=['Все','Грудь','Спина','Плечи','Бицепс','Трицепс','Ноги','Пресс','Комбинации'];
+ const box=h('div',{},h('div',{class:'row',style:'justify-content:space-between'},h('h2',{style:'margin:0'},'Готовые тренировки'),h('button',{class:'b',onclick:()=>{libraryOpen=false;render()}},'← Назад')),
+ h('p',{class:'mut'},'Выберите программу, чтобы добавить её в свои тренировки. Упражнения можно будет изменить позже.'),
+ h('div',{class:'chips'},categories.map(cat=>h('button',{class:'b'+(libraryFilter===cat?' p':''),onclick:()=>{libraryFilter=cat;render()}},cat))),
+ TRAINING_LIBRARY.filter(t=>libraryFilter==='Все'||t.cat===libraryFilter).map(t=>h('div',{class:'card'},
+ h('h3',{},t.name),h('p',{class:'mut'},t.ex.length+' упражнений'),h('ul',{},t.ex.map(ex=>h('li',{},ex))),
+ h('button',{class:'b p',onclick:()=>{if(S.workouts.some(w=>w.name===t.name)){if(!confirm('Тренировка «'+t.name+'» уже есть. Добавить ещё одну копию?'))return}
+ S.workouts.push({id:uid(),name:t.name,ex:[...t.ex]});save();libraryOpen=false;libraryFilter='Все';render()}},'+ Добавить в мои тренировки'))));
+ return box;
+}
+
 function coachV(){
  const inp=h('input',{placeholder:'Спросите тренера','aria-label':'Сообщение тренеру',value:cDraft,enterkeyhint:'send'});
  inp.addEventListener('input',()=>cDraft=inp.value);
  const send=()=>{const t=inp.value.trim();if(t){cDraft='';ask(t)}};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
  const off=CH.busy;
- return h('div',{},h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
+ return h('div',{},h('button',{class:'b p',style:'width:100%;margin:8px 0 18px',onclick:()=>{libraryOpen=true;render()}},'🏋️ Готовые тренировки'),libraryOpen?trainingLibraryV():null,h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
   h('p',{class:'mut'},CH.prov==='auto'?'Автоматический режим: сначала Cloudflare Workers AI, затем Groq при недоступности первого сервиса.':'Выбран провайдер: '+(CH.prov==='cloudflare'?'Cloudflare Workers AI':CH.prov==='gemini'?'Gemini':'Groq')+'.'),
   h('div',{class:'chips'},['Проанализируй мой прогресс','Составь план на неделю','Какие веса взять в следующий раз?','Чего не хватает в моих тренировках?'].map(t=>h('button',{class:'b',disabled:off,onclick:()=>ask(t)},t))),
