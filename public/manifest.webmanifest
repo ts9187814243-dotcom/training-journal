@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Training Journal",
+  "short_name": "Training",
+  "description": "Личный журнал силовых тренировок, прогресса и восстановления.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#17404a",
+  "background_color": "#f6f7f7",
+  "icons": [
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
