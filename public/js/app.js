@@ -271,13 +271,13 @@ function log(){
 }
 
 function chart(pts,unit){
- if(pts.length<2)return h('p',{class:'mut'},'График появится после двух тренировок с этим упражнением.');
+ if(!pts.length)return h('p',{class:'mut'},'Добавьте запись, чтобы увидеть график.');
  const W=320,H=150,p=30,vs=pts.map(x=>x.v),mn=Math.min(...vs),mx=Math.max(...vs),rg=mx-mn||1;
- const X=i=>p+i*(W-2*p)/(pts.length-1),Y=v=>H-p-(v-mn)/rg*(H-2*p);
+ const X=i=>pts.length===1?W/2:p+i*(W-2*p)/(pts.length-1),Y=v=>H-p-(v-mn)/rg*(H-2*p);
  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('class','chart');svg.setAttribute('role','img');svg.setAttribute('aria-label','График: '+unit);
  const r=n=>Math.round(n*10)/10;
  svg.innerHTML='<line x1="'+p+'" x2="'+(W-p)+'" y1="'+(H-p)+'" y2="'+(H-p)+'" stroke="var(--line)"/>'+
-  '<polyline fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" points="'+pts.map((q,i)=>X(i)+','+Y(q.v)).join(' ')+'"/>'+
+  (pts.length>1?'<polyline fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" points="'+pts.map((q,i)=>X(i)+','+Y(q.v)).join(' ')+'"/>':'')+
   pts.map((q,i)=>'<circle cx="'+X(i)+'" cy="'+Y(q.v)+'" r="'+(q.v===mx?5:3.5)+'" fill="'+(q.v===mx?'var(--pr)':'var(--acc)')+'"/>').join('')+
   '<g font-size="11" fill="var(--mut)" font-family="Barlow,sans-serif"><text x="4" y="'+(Y(mx)+4)+'">'+r(mx)+'</text><text x="4" y="'+(Y(mn)+4)+'">'+r(mn)+'</text>'+
   '<text x="'+p+'" y="'+(H-8)+'">'+pts[0].d+'</text><text x="'+(W-p)+'" y="'+(H-8)+'" text-anchor="end">'+pts[pts.length-1].d+'</text></g>';
@@ -315,19 +315,20 @@ function progress(){
  const fullHist=S.logs.map(l=>({l,en:l.entries.find(e=>e.ex===sel)})).filter(x=>x.en);
  const hist=progressRange==='week'?fullHist.filter(x=>x.l.date>=cutoffISO):fullHist;
  const all=hist.flatMap(x=>x.en.sets),hasW=all.some(s=>s.w>0);
- const st=(l,v,c)=>h('div',{class:'stat '+(c||'')},l,h('b',{},v));
+ const st=(l,v,c)=>h('div',{class:'stat '+(c||'')},h('span',{class:'stat-label'},l),h('b',{},v));
+  const stCount=(l,n)=>h('div',{class:'stat stat-count'},h('span',{class:'stat-label'},l),h('b',{},String(n)),h('small',{},'тренировок'));
  const cmpDate=new Date();cmpDate.setHours(0,0,0,0);const currentEnd=cmpDate.toISOString().slice(0,10);cmpDate.setDate(cmpDate.getDate()-29);const currentStart=cmpDate.getFullYear()+'-'+String(cmpDate.getMonth()+1).padStart(2,'0')+'-'+String(cmpDate.getDate()).padStart(2,'0');cmpDate.setDate(cmpDate.getDate()-30);const prevStart=cmpDate.getFullYear()+'-'+String(cmpDate.getMonth()+1).padStart(2,'0')+'-'+String(cmpDate.getDate()).padStart(2,'0');cmpDate.setDate(cmpDate.getDate()+30);const prevEnd=cmpDate.getFullYear()+'-'+String(cmpDate.getMonth()+1).padStart(2,'0')+'-'+String(cmpDate.getDate()-1).padStart(2,'0');
  const cur=fullHist.filter(x=>x.l.date>=currentStart&&x.l.date<=currentEnd),prev=fullHist.filter(x=>x.l.date>=prevStart&&x.l.date<=prevEnd);const metric=arr=>arr.flatMap(x=>x.en.sets).reduce((m,z)=>Math.max(m,hasW?e1(z.w,z.r):z.r),0);const volume=arr=>arr.flatMap(x=>x.en.sets).reduce((v,z)=>v+(z.w||1)*z.r,0);const change=(x,y)=>y===0?(x===0?'0%':'+∞'):((x-y)/y*100).toFixed(1)+'%';
- const comparison=h('div',{class:'card'},h('h3',{},'Сравнение за 30 дней'),h('div',{class:'stats'},st('Текущий период',cur.length+' тренировок'),st('Предыдущий',prev.length+' тренировок'),st(hasW?'Максимум (Эпли)':'Лучшие повторы',metric(cur)||'—'),st('Предыдущий максимум',metric(prev)||'—'),st('Изменение максимума',change(metric(cur),metric(prev))),st('Изменение объёма',change(volume(cur),volume(prev)))));
+ const comparison=h('div',{class:'card'},h('h3',{},'Сравнение за 30 дней'),h('div',{class:'stats comparison-stats'},stCount('Текущий период',cur.length),stCount('Предыдущий',prev.length),st(hasW?'Максимум (Эпли)':'Лучшие повторы',metric(cur)||'—'),st('Предыдущий максимум',metric(prev)||'—'),st('Изменение максимума',change(metric(cur),metric(prev))),st('Изменение объёма',change(volume(cur),volume(prev)))));
  const controls=h('div',{class:'row',style:'flex-wrap:wrap;margin:10px 0'},
   h('button',{class:'b '+(progressRange==='week'?'p':''),onclick:()=>{progressRange='week';render()}},'Последние 7 дней'),
   h('button',{class:'b '+(progressRange==='all'?'p':''),onclick:()=>{progressRange='all';render()}},'Всё время'));
  if(!all.length)return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
- const pts=hist.map(x=>({d:fd(x.l.date),v:hasW?Math.max(...x.en.sets.map(s=>e1(s.w,s.r))):Math.max(...x.en.sets.map(s=>s.r))}));
+ const chartPts=fullHist.map(x=>({d:fd(x.l.date),v:hasW?Math.max(...x.en.sets.map(s=>e1(s.w,s.r))):Math.max(...x.en.sets.map(s=>s.r))}));
  const mw=Math.max(...all.map(s=>s.w)),mr=Math.max(...all.map(s=>s.r)),vol=all.reduce((a,s)=>a+(s.w||1)*s.r,0);
  return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
   h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),st('Объём за период',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
-  comparison,h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(pts,hasW?'расчётный максимум':'повторы')),body(),
+  comparison,h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(chartPts,hasW?'расчётный максимум':'повторы')),body(),
   h('h2',{},'История'),hist.slice().reverse().map(x=>h('div',{class:'card'},h('div',{class:'row'},h('b',{class:'grow'},fd(x.l.date)+' · '+x.l.name),h('button',{class:'b',onclick:()=>ask(sessText(x.l))},'Тренеру'),h('button',{class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(l=>l!==x.l);save();render()}}},'Удалить')),h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))));
 }
 const COACH_SYS='Ты персональный тренер по силовым тренировкам в приложении-дневнике. Отвечай по-русски, коротко и конкретно (до 200 слов), с цифрами из записей пользователя. Давай рекомендации по прогрессии нагрузки, объёму, отдыху и балансу групп мышц, учитывая цель, опыт и ограничения из профиля. Без Markdown-разметки: обычный текст, короткие списки через тире. Не ставь диагнозов; при боли, травмах или хронических заболеваниях советуй очную консультацию врача или тренера. Если данных мало, скажи об этом и предложи, что записывать.';
@@ -563,4 +564,5 @@ function render(){
  av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());enhanceSelects(vv);
 }
 render();
-initSupabase();
+setTimeout(hideSplash,2800);
+initSupabase().finally(()=>setTimeout(hideSplash,650));

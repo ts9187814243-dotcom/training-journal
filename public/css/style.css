@@ -390,3 +390,27 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 :root[data-theme="light"] .select-option:hover,:root[data-theme="light"] .select-option.is-active{background:rgba(69,198,198,.16);color:#123237}
 @media(min-width:1024px){body{background-attachment:fixed}nav{background:rgba(8,24,28,.88)}}
 @media(prefers-reduced-motion:no-preference){.card,.stat{transition:border-color .2s,box-shadow .2s}.card:hover{border-color:rgba(85,216,213,.28);box-shadow:0 16px 38px rgba(0,0,0,.22)}}
+
+
+/* Loading screen inspired by the supplied Training Journal concept. */
+#splash{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,rgba(0,211,203,.22),transparent 44%),linear-gradient(180deg,#04171c 0%,#06252d 55%,#03151b 100%);color:#eaffff;opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease}
+#splash::before,#splash::after{content:"";position:absolute;inset:auto -10% 0;width:120%;height:42%;pointer-events:none}
+#splash::before{background:linear-gradient(145deg,transparent 10%,rgba(0,104,116,.42) 10.2%,rgba(0,58,70,.8) 55%,transparent 55.2%);clip-path:polygon(0 68%,12% 34%,23% 58%,37% 10%,49% 48%,62% 20%,77% 63%,90% 27%,100% 52%,100% 100%,0 100%);opacity:.75}
+#splash::after{background:linear-gradient(160deg,rgba(0,224,215,.15),rgba(0,29,39,.96));clip-path:polygon(0 78%,14% 52%,27% 72%,43% 26%,58% 67%,73% 38%,88% 72%,100% 48%,100% 100%,0 100%)}
+.splash-glow{position:absolute;width:min(78vw,560px);aspect-ratio:1;border:1px solid rgba(61,235,226,.26);border-radius:50%;box-shadow:0 0 90px rgba(0,225,215,.12),inset 0 0 70px rgba(0,225,215,.08)}
+.splash-brand{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:32px 24px}
+.splash-brand img{width:clamp(112px,30vw,190px);height:clamp(112px,30vw,190px);object-fit:cover;border-radius:30%;filter:drop-shadow(0 0 26px rgba(0,235,225,.36));margin-bottom:18px}
+.splash-title{font-size:clamp(38px,10vw,58px);font-weight:800;letter-spacing:-.055em;line-height:.98;text-shadow:0 5px 28px rgba(0,0,0,.28)}
+.splash-brand p{font-size:clamp(16px,4vw,20px);line-height:1.45;color:#c7f6f2;margin:20px 0 28px}
+.splash-loader{width:48px;height:48px;border:5px solid rgba(79,226,219,.2);border-top-color:#38e2d8;border-right-color:#38e2d8;border-radius:50%;animation:splash-spin .9s linear infinite;box-shadow:0 0 20px rgba(0,225,215,.18)}
+.splash-brand>span{margin-top:12px;color:#91e9e3;font-size:14px}
+#splash.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes splash-spin{to{transform:rotate(360deg)}}
+.stat{min-width:0;overflow:hidden}
+.stat-label{display:block;min-width:0;color:var(--mut);font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.stat b{display:block;min-width:0;overflow-wrap:anywhere;line-height:1.15}
+.stat-count b{font-size:clamp(25px,6vw,32px);font-variant-numeric:tabular-nums}
+.stat-count small{display:block;margin-top:3px;color:var(--mut);font-size:12px}
+.comparison-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:380px){.comparison-stats{gap:7px}.comparison-stats .stat{padding:12px 10px}.comparison-stats .stat-label{font-size:12px}.comparison-stats .stat b{font-size:22px}}
+@media(prefers-reduced-motion:reduce){.splash-loader{animation:none}#splash{transition:none}}
