@@ -392,7 +392,7 @@ function coachV(){
  const send=()=>{const t=inp.value.trim();if(t){cDraft='';ask(t)}};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
  const off=CH.busy;if(CH.prov==='gemini')CH.prov='auto';
- return h('div',{},h('button',{class:'b p',style:'width:100%;margin:8px 0 18px',onclick:()=>{libraryOpen=true;render()}},'🏋️ Готовые тренировки'),h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
+ return h('div',{},h('button',{class:'workout-library-tile',onclick:()=>{libraryOpen=true;render()}},h('span',{class:'workout-library-icon'},'🏋️'),h('span',{class:'workout-library-copy'},h('strong',{},'Каталог программ'),h('small',{},'Готовые тренировки')),h('span',{class:'workout-library-arrow'},'→')),h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
 
   h('div',{class:'chips'},['Проанализируй мой прогресс','Составь план на неделю','Какие веса взять в следующий раз?','Чего не хватает в моих тренировках?'].map(t=>h('button',{class:'b',disabled:off,onclick:()=>ask(t)},t))),
