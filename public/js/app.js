@@ -552,6 +552,13 @@ function enhanceSelects(root){
   wrap.append(trigger,popup);sync();
  });
 }
+function hideSplash(){
+ const splash=document.getElementById('splash');
+ if(!splash||splash.dataset.dismissed==='1')return;
+ splash.dataset.dismissed='1';
+ splash.classList.add('is-hidden');
+ window.setTimeout(()=>splash.remove(),700);
+}
 function render(){
  document.documentElement.lang=S.settings.language||'ru';
  const brand=document.querySelector('h1');if(brand){brand.replaceChildren(h('span',{},'Журнал'),' ',h('i',{},'тренировок'));}
@@ -564,5 +571,5 @@ function render(){
  av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());enhanceSelects(vv);
 }
 render();
-setTimeout(hideSplash,2800);
-initSupabase().finally(()=>setTimeout(hideSplash,650));
+window.setTimeout(hideSplash,2800);
+Promise.resolve().then(()=>initSupabase()).catch(error=>console.error('Supabase init failed:',error)).finally(()=>window.setTimeout(hideSplash,650));
