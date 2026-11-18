@@ -420,7 +420,7 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 #splash{
  background-image:
   linear-gradient(180deg,rgba(2,17,22,.58) 0%,rgba(2,27,34,.24) 43%,rgba(2,15,21,.88) 100%),
-  url('https://images.unsplash.com/photo-1601232327597-c8430b8cb5d9?auto=format&fit=crop&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.0.3&q=85&w=1600');
+  url('/images/mountain-bg.jpg');
  background-size:cover;
  background-position:center 62%;
  background-repeat:no-repeat;
