@@ -420,7 +420,7 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 #splash{
  background-image:
   linear-gradient(180deg,rgba(2,17,22,.58) 0%,rgba(2,27,34,.24) 43%,rgba(2,15,21,.88) 100%),
-  url('/images/mountain-bg.jpg');
+  url('/images/mountain-bg-hq.jpg');
  background-size:cover;
  background-position:center 62%;
  background-repeat:no-repeat;
