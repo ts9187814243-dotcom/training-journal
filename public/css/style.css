@@ -280,3 +280,16 @@ button.b.p,a.b.p{box-shadow:0 7px 18px rgba(23,64,74,.16)}
 @media(prefers-color-scheme:dark){:root:root:not([data-theme="light"]){.select-popover{background:rgba(18,29,32,.98)}.select-option{color:#eaf4f5}}}
 :root:root[data-theme="dark"] .select-popover{background:rgba(18,29,32,.98)}
 :root:root[data-theme="dark"] .select-option{color:#eaf4f5}
+
+/* Fitness Tile: entry to ready-made workout programs */
+.workout-library-tile{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:16px 18px;margin:8px 0 22px;border:1px solid rgba(70,190,196,.34);border-radius:20px;background:linear-gradient(135deg,rgba(215,248,246,.92),rgba(255,255,255,.78));box-shadow:0 8px 26px rgba(18,113,122,.09);color:var(--text,#163e45);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
+.workout-library-tile:hover{transform:translateY(-2px);border-color:rgba(40,178,187,.65);box-shadow:0 12px 30px rgba(18,113,122,.14)}
+.workout-library-tile:focus-visible{outline:3px solid rgba(69,202,207,.65);outline-offset:3px}
+.workout-library-icon{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:rgba(92,214,211,.22);font-size:24px}
+.workout-library-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.workout-library-copy strong{font-size:16px;font-weight:750}
+.workout-library-copy small{font-size:13px;opacity:.72}
+.workout-library-arrow{font-size:22px;opacity:.65;padding:0 4px}
+:root[data-theme="dark"] .workout-library-tile{background:linear-gradient(135deg,rgba(19,74,78,.92),rgba(30,45,48,.88));color:var(--text,#eaf4f5);border-color:rgba(82,204,207,.35)}
+:root[data-theme="dark"] .workout-library-icon{background:rgba(82,204,207,.16)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .workout-library-tile{background:linear-gradient(135deg,rgba(19,74,78,.92),rgba(30,45,48,.88));color:var(--text,#eaf4f5)}}
