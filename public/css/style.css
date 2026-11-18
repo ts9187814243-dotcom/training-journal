@@ -344,14 +344,14 @@ button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.52;filter:sat
 
 
 /* Training Journal redesign: graphite glass + focused turquoise lighting. */
-:root:not([data-theme="light"]),:root[data-theme="dark"]{
+:root:root:not([data-theme="light"]),:root:root[data-theme="dark"]{
  --bg:#071316;--surf:#0d1c20;--ink:#e8f6f6;--mut:#91a9ad;--line:rgba(119,205,208,.16);
  --acc:#55d8d5;--onacc:#052528;--cy:#55d8d5;--or:#9ae9e3;--tint:rgba(19,43,47,.72);
  --soft:rgba(85,216,213,.13);--softb:rgba(85,216,213,.28);--glow:rgba(85,216,213,.18);
  --glass:rgba(15,36,40,.72);--glass-strong:rgba(12,29,33,.94);--glass-border:rgba(118,221,220,.18);
  --glass-shadow:0 16px 46px rgba(0,0,0,.24);--glass-blur:22px;color-scheme:dark;
 }
-:root[data-theme="light"]{
+:root:root[data-theme="light"]{
  --bg:#edf5f5;--surf:#f9fdfd;--ink:#123237;--mut:#668084;--line:rgba(26,91,96,.14);
  --acc:#168d91;--onacc:#fff;--cy:#45c6c6;--or:#168d91;--tint:rgba(255,255,255,.68);
  --soft:rgba(69,198,198,.12);--softb:rgba(69,198,198,.28);--glow:rgba(69,198,198,.16);
