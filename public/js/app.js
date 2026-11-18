@@ -534,10 +534,10 @@ function enhanceSelects(root){
   const options=()=>[...select.options].filter(o=>!o.disabled);
   let active= Math.max(0,options().findIndex(o=>o.value===select.value));
   const sync=()=>{const opt=select.options[select.selectedIndex];value.textContent=opt?.textContent||'';popup.querySelectorAll('[role=option]').forEach((b,i)=>{b.setAttribute('aria-selected',String(options()[i]===opt));b.classList.toggle('is-selected',options()[i]===opt)})};
-  const close=(focus=false)=>{popup.hidden=true;trigger.setAttribute('aria-expanded','false');wrap.classList.remove('is-open');if(focus)trigger.focus()};
+  const close=(focus=false)=>{popup.hidden=true;popup.remove();trigger.setAttribute('aria-expanded','false');wrap.classList.remove('is-open');if(focus)trigger.focus()};
   const choose=i=>{const opts=options();if(!opts.length)return;active=(i+opts.length)%opts.length;select.value=opts[active].value;select.dispatchEvent(new Event('change',{bubbles:true}));sync();close(true)};
   options().forEach((opt,i)=>{const item=document.createElement('button');item.type='button';item.className='select-option';item.setAttribute('role','option');item.textContent=opt.textContent;item.addEventListener('click',()=>choose(i));popup.append(item)});
-  const open=()=>{if(!options().length)return;popup.hidden=false;trigger.setAttribute('aria-expanded','true');wrap.classList.add('is-open');active=Math.max(0,options().findIndex(o=>o.value===select.value));popup.querySelectorAll('.select-option')[active]?.scrollIntoView({block:'nearest'})};
+  const open=()=>{if(!options().length)return;document.body.append(popup);popup.hidden=false;const r=trigger.getBoundingClientRect();const maxH=Math.min(320,Math.floor(window.innerHeight*.45));const below=window.innerHeight-r.bottom;const above=r.top;const placeAbove=below<Math.min(190,maxH)&&above>below;const top=placeAbove?Math.max(8,r.top-maxH-8):Math.min(window.innerHeight-maxH-8,r.bottom+8);const width=Math.min(r.width,window.innerWidth-16);const left=Math.max(8,Math.min(r.left,window.innerWidth-width-8));popup.style.top=top+'px';popup.style.left=left+'px';popup.style.width=width+'px';popup.style.maxHeight=Math.min(maxH,placeAbove?above-16:below-16)+'px';trigger.setAttribute('aria-expanded','true');wrap.classList.add('is-open');active=Math.max(0,options().findIndex(o=>o.value===select.value));popup.querySelectorAll('.select-option')[active]?.scrollIntoView({block:'nearest'})};
   trigger.addEventListener('click',()=>popup.hidden?open():close());
   trigger.addEventListener('keydown',e=>{
    const opts=options();if(!opts.length)return;
@@ -547,7 +547,7 @@ function enhanceSelects(root){
    else if(e.key.length===1&&!e.ctrlKey&&!e.altKey){const q=e.key.toLocaleLowerCase();const i=opts.findIndex((o,n)=>n>active&&o.textContent.trim().toLocaleLowerCase().startsWith(q));const next=i<0?opts.findIndex(o=>o.textContent.trim().toLocaleLowerCase().startsWith(q)):i;if(next>=0){active=next;if(popup.hidden)open();popup.querySelectorAll('.select-option').forEach((b,n)=>b.classList.toggle('is-active',n===active))}}
   });
   select.addEventListener('change',sync);
-  document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target))close()});
+  document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target)&&!popup.contains(e.target))close()});window.addEventListener('resize',()=>{if(!popup.hidden)close()},{passive:true});window.addEventListener('scroll',()=>{if(!popup.hidden)close()},{passive:true,capture:true});
   wrap.append(trigger,popup);sync();
  });
 }
