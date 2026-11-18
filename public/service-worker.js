@@ -1,4 +1,4 @@
-const CACHE_NAME='training-journal-pwa-v1';
+const CACHE_NAME='training-journal-pwa-v2';
 const STATIC_FILES=['/','/index.html','/css/style.css','/js/app.js','/manifest.webmanifest','/icons/app-icon.svg'];
 
 self.addEventListener('install',event=>{
