@@ -306,24 +306,26 @@ function backup(){
   h('button',{class:'b p',onclick:()=>{try{const o=JSON.parse(ta.value);if(!Array.isArray(o.workouts)||!Array.isArray(o.logs))throw 0;if(!confirm('Заменить текущие данные загруженными?'))return;S={workouts:o.workouts,logs:o.logs,body:Array.isArray(o.body)?o.body:[],profile:o.profile&&typeof o.profile==='object'?o.profile:{}};save();bk=null;render()}catch(e){em.textContent='Не удалось прочитать данные. Вставьте текст копии целиком.'}}},'Загрузить'),
   h('button',{class:'b',onclick:()=>{bk=null;render()}},'Скрыть')));
 }
+let progressRange='week';
 function progress(){
  const exs=[...new Set(S.logs.flatMap(l=>l.entries.map(e=>e.ex)))];
- if(!exs.length)return h('div',{},h('h2',{},'Прогресс'),h('p',{class:'mut'},'Здесь появятся рекорды и графики после первой записанной тренировки.'),h('button',{class:'b p',onclick:()=>go('log')},'Записать тренировку'),body(),backup());
+ if(!exs.length)return h('div',{},h('h2',{},'Прогресс'),h('p',{class:'mut'},'Здесь появятся рекорды и графики после первой записанной тренировки.'),h('button',{class:'b p',onclick:()=>go('log')},'Записать тренировку'),body());
  if(!exs.includes(sel))sel=exs[0];
- const hist=S.logs.map(l=>({l,en:l.entries.find(e=>e.ex===sel)})).filter(x=>x.en);
+ const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);cutoff.setHours(0,0,0,0);const cutoffISO=cutoff.toISOString().slice(0,10);
+ const fullHist=S.logs.map(l=>({l,en:l.entries.find(e=>e.ex===sel)})).filter(x=>x.en);
+ const hist=progressRange==='week'?fullHist.filter(x=>x.l.date>=cutoffISO):fullHist;
  const all=hist.flatMap(x=>x.en.sets),hasW=all.some(s=>s.w>0);
+ const st=(l,v,c)=>h('div',{class:'stat '+(c||'')},l,h('b',{},v));
+ const controls=h('div',{class:'row',style:'flex-wrap:wrap;margin:10px 0'},
+  h('button',{class:'b '+(progressRange==='week'?'p':''),onclick:()=>{progressRange='week';render()}},'Последние 7 дней'),
+  h('button',{class:'b '+(progressRange==='all'?'p':''),onclick:()=>{progressRange='all';render()}},'Всё время'));
+ if(!all.length)return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x)),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
  const pts=hist.map(x=>({d:fd(x.l.date),v:hasW?Math.max(...x.en.sets.map(s=>e1(s.w,s.r))):Math.max(...x.en.sets.map(s=>s.r))}));
  const mw=Math.max(...all.map(s=>s.w)),mr=Math.max(...all.map(s=>s.r)),vol=all.reduce((a,s)=>a+(s.w||1)*s.r,0);
- const st=(l,v,c)=>h('div',{class:'stat '+(c||'')},l,h('b',{},v));
- return h('div',{},h('h2',{},'Прогресс'),
-  h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),
-  h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),
-   st('Объём за всё время',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
-  h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(pts,hasW?'расчётный максимум':'повторы')),
-  body(),
-  h('h2',{},'История'),
-  hist.slice().reverse().map(x=>h('div',{class:'card'},h('div',{class:'row'},h('b',{class:'grow'},fd(x.l.date)+' · '+x.l.name),h('button',{class:'b',onclick:()=>ask(sessText(x.l))},'Тренеру'),h('button',{class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(l=>l!==x.l);save();render()}}},'Удалить')),
-   h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))),backup());
+ return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
+  h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),st('Объём за период',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
+  h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(pts,hasW?'расчётный максимум':'повторы')),body(),
+  h('h2',{},'История'),hist.slice().reverse().map(x=>h('div',{class:'card'},h('div',{class:'row'},h('b',{class:'grow'},fd(x.l.date)+' · '+x.l.name),h('button',{class:'b',onclick:()=>ask(sessText(x.l))},'Тренеру'),h('button',{class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(l=>l!==x.l);save();render()}}},'Удалить')),h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))));
 }
 const COACH_SYS='Ты персональный тренер по силовым тренировкам в приложении-дневнике. Отвечай по-русски, коротко и конкретно (до 200 слов), с цифрами из записей пользователя. Давай рекомендации по прогрессии нагрузки, объёму, отдыху и балансу групп мышц, учитывая цель, опыт и ограничения из профиля. Без Markdown-разметки: обычный текст, короткие списки через тире. Не ставь диагнозов; при боли, травмах или хронических заболеваниях советуй очную консультацию врача или тренера. Если данных мало, скажи об этом и предложи, что записывать.';
 const CH={msgs:[],busy:false,err:'',prov:'auto'};let cDraft='';
