@@ -326,3 +326,11 @@ nav button[aria-current="true"]{background:rgba(70,190,196,.13)}
  nav button[aria-current="true"]::before{content:'';position:absolute;left:5px;top:9px;bottom:9px;width:3px;border-radius:99px;background:var(--cy);box-shadow:0 0 12px var(--glow)}
  nav button[aria-current="true"] span:first-child{background:rgba(94,207,212,.18);color:var(--acc)}
 }
+
+/* Unified interaction feedback across controls (responsive-safe). */
+button,a,[role="button"],input[type="checkbox"],input[type="radio"],select{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,opacity .18s ease,transform .16s ease}
+@media(hover:hover){button:not(:disabled):not([aria-current="true"]):hover{filter:brightness(1.035)}a:hover{filter:brightness(1.04)}input:not(:disabled):hover,select:not(:disabled):hover,textarea:not(:disabled):hover{border-color:rgba(94,207,212,.55)}}
+button:not(:disabled):active,a:active,[role="button"]:active{transform:scale(.975)}
+button:disabled,[aria-disabled="true"]{cursor:not-allowed;opacity:.52;filter:saturate(.65)}
+:where(button,a,input,select,textarea,[role="button"],[tabindex]):focus-visible{outline:3px solid rgba(94,207,212,.65);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){button,a,[role="button"],input,select,textarea{transition:none!important}button:active,a:active,[role="button"]:active{transform:none!important}}
