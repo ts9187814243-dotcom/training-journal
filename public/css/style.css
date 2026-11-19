@@ -651,3 +651,12 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .history-set-chip{padding:5px 8px;border:1px solid var(--glass-border);border-radius:9px;background:rgba(65,205,195,.07);color:var(--ink);font-size:11px;font-variant-numeric:tabular-nums}
 .history-exercise small{display:block;margin-top:6px}
 @media(max-width:520px){.history-calendar-card{padding:14px;border-radius:21px}.history-calendar-grid{gap:4px}.history-calendar-day,.history-calendar-empty{height:42px}.history-calendar-day{border-radius:10px;font-size:12px}.history-workout-card{padding:12px}.history-calendar-heading h3{font-size:15px}}
+
+/* Mobile workout history opens as a separate glass dialog */
+.history-modal-backdrop,.history-modal-close{display:none}
+@media(max-width:520px){
+ .history-day-details.is-open{position:fixed;z-index:10020;left:12px;right:12px;top:50%;transform:translateY(-50%);max-height:min(82dvh,760px);overflow-y:auto;margin:0;padding:18px 14px calc(18px + env(safe-area-inset-bottom));border:1px solid rgba(100,225,218,.3);border-radius:24px;background:rgba(7,25,29,.98);box-shadow:0 28px 90px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px)}
+ .history-modal-backdrop{display:block;position:fixed;z-index:10019;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:0;background:rgba(0,8,10,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+ .history-day-title{align-items:flex-start}
+ .history-modal-close{display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border:1px solid var(--glass-border);border-radius:50%;background:rgba(255,255,255,.07);color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+}
