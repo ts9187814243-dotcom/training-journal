@@ -660,3 +660,20 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
  .history-day-title{align-items:flex-start}
  .history-modal-close{display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border:1px solid var(--glass-border);border-radius:50%;background:rgba(255,255,255,.07);color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
 }
+/* Interactive front/back anatomical muscle load map */
+.anatomy-map{margin:18px 0;padding:16px;border:1px solid var(--glass-border);border-radius:22px;background:rgba(5,31,35,.24)}
+.anatomy-map-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.anatomy-map-heading b{font-size:13px;font-weight:800;color:var(--ink)}
+.anatomy-map-heading p{margin:4px 0 0;color:var(--mut);font-size:10px;line-height:1.4}
+.anatomy-scale{color:var(--mut);font-size:9px;white-space:nowrap}
+.anatomy-figures{display:flex;justify-content:center;gap:clamp(18px,8vw,56px);padding:8px 0 4px}
+.anatomy-figure{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut);font-size:10px;font-weight:700}
+.anatomy-figure svg{width:clamp(100px,27vw,145px);height:auto;max-height:300px;overflow:visible}
+.anatomy-region{transition:fill .2s,stroke .2s}
+.anatomy-region:hover,.anatomy-region.active{stroke:#bafff7;stroke-width:2;filter:drop-shadow(0 0 4px rgba(85,235,220,.5))}
+.anatomy-legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border)}
+.anatomy-legend-item{display:flex;align-items:center;gap:6px;min-height:31px;padding:5px 8px;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.025);color:var(--mut);font:600 10px Inter,system-ui,sans-serif;cursor:pointer}
+.anatomy-legend-item i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px rgba(85,235,220,.35)}
+.anatomy-legend-item b{color:var(--acc);font-variant-numeric:tabular-nums}
+.anatomy-legend-item.active{border-color:var(--acc);background:rgba(65,205,195,.12);color:var(--ink)}
+@media(max-width:420px){.anatomy-map{padding:12px}.anatomy-figures{gap:18px}.anatomy-figure svg{width:112px}.anatomy-map-heading{align-items:flex-start}.anatomy-scale{font-size:8px}}
