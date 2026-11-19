@@ -371,6 +371,30 @@ function muscleAnalytics(){
  const rows=cards.map(x=>{const open=muscleDetail===x.g,ex=[...x.exercises.entries()].sort((a,b)=>b[1].sets-a[1].sets).map(([n,v])=>h('div',{class:'muscle-exercise-row'},h('span',{},n),h('b',{},v.sets+' подх.'),h('small',{},v.volume?Math.round(v.volume).toLocaleString('ru-RU')+' кг·повт.':'—')));return h('div',{class:'muscle-row'},h('button',{type:'button',class:'muscle-row-toggle','aria-expanded':String(open),onclick:()=>{muscleDetail=open?'':x.g;render()}},h('b',{},x.g),h('span',{},x.sets+' подх.'),h('span',{},open?'−':'+')),h('div',{class:'muscle-track'},h('span',{class:'muscle-fill',style:'width:'+Math.max(3,x.sets/max*100)+'%'})),h('div',{class:'muscle-row-meta'},h('span',{},x.workouts.size+' трен.'),h('span',{},x.exercises.size+' упр.'),h('span',{},'к прошлому периоду: '+delta(x.sets,x.previous.sets)),h('span',{},'объём '+Math.round(x.volume).toLocaleString('ru-RU')+' кг·повт.')),open?h('div',{class:'muscle-detail'},...ex):null)});
  return h('section',{class:'muscle-analytics'},h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},names[muscleRange])),h('span',{class:'muscle-total'},total+' подходов')),controls,h('div',{class:'muscle-bars'},...rows),h('div',{class:'muscle-balance'},h('b',{},'Баланс нагрузки'),h('p',{class:'muscle-insight'},insight)),h('p',{class:'muscle-footnote'},'Сравнение с предыдущим периодом такой же длительности. Основная группа упражнения; тоннаж без веса тела.'));
 }
+
+let historyMonth=new Date(),historySelected='';
+function historyCalendar(){
+ const locale=({ru:'ru-RU',en:'en-US',de:'de-DE',zh:'zh-CN',ja:'ja-JP',fr:'fr-FR',hi:'hi-IN',es:'es-ES'})[S.settings.language]||'ru-RU';
+ const pad=n=>String(n).padStart(2,'0'),key=(y,m,d)=>y+'-'+pad(m+1)+'-'+pad(d),grouped={};
+ (S.logs||[]).forEach(l=>{(grouped[l.date]||(grouped[l.date]=[])).push(l)});
+ const y=historyMonth.getFullYear(),m=historyMonth.getMonth(),offset=(new Date(y,m,1).getDay()+6)%7,total=new Date(y,m+1,0).getDate(),cells=[];
+ for(let i=0;i<offset;i++)cells.push(h('span',{class:'history-calendar-empty'}));
+ for(let d=1;d<=total;d++){const date=key(y,m,d),has=!!grouped[date];cells.push(h('button',{type:'button',class:'history-calendar-day'+(has?' has-workout':'')+(date===historySelected?' selected':''),'aria-pressed':String(date===historySelected),onclick:()=>{historySelected=date;render()}},h('span',{},String(d)),has?h('i',{class:'history-calendar-dot'}):null))}
+ const weekdays=({en:['Mo','Tu','We','Th','Fr','Sa','Su']})[S.settings.language]||['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+ const nav=h('div',{class:'history-calendar-head'},h('button',{type:'button',class:'calendar-nav','aria-label':'Предыдущий месяц',onclick:()=>{historyMonth.setMonth(historyMonth.getMonth()-1);render()}},'‹'),h('strong',{},historyMonth.toLocaleDateString(locale,{month:'long',year:'numeric'})),h('button',{type:'button',class:'calendar-nav','aria-label':'Следующий месяц',onclick:()=>{historyMonth.setMonth(historyMonth.getMonth()+1);render()}},'›'));
+ const logs=historySelected?(grouped[historySelected]||[]):[],details=[];
+ if(historySelected){
+  details.push(h('div',{class:'history-day-title'},h('h3',{},new Date(historySelected+'T12:00:00').toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'})),h('span',{class:'mut'},logs.length?logs.length+' тренировок':'Нет тренировок')));
+  if(!logs.length)details.push(h('p',{class:'mut'},'В этот день тренировок не записано.'));
+  logs.forEach(log=>{
+   const entries=log.entries||[],sets=entries.reduce((n,e)=>n+(e.sets||[]).length,0),volume=entries.reduce((n,e)=>n+(e.sets||[]).reduce((v,x)=>v+(Number(x.w)||0)*(Number(x.r)||0),0),0);
+   const exercises=entries.map(e=>h('div',{class:'history-exercise'},h('strong',{},e.ex),h('div',{class:'history-set-list'},...(e.sets||[]).map((set,i)=>h('span',{class:'history-set-chip'},(i+1)+'. '+(set.w?set.w+' кг × ':'')+set.r+' повт.'))),e.feeling?h('small',{class:'mut'},'Ощущение: '+({easy:'Легко',normal:'Нормально',hard:'Тяжело'}[e.feeling]||e.feeling)):null));
+   details.push(h('article',{class:'history-workout-card'},h('div',{class:'history-workout-summary'},h('h4',{},log.name||'Тренировка'),h('span',{},entries.length+' упражн. · '+sets+' подходов')),h('div',{class:'history-workout-stats'},h('span',{},'Объём: '+Math.round(volume).toLocaleString('ru-RU')+' кг·повт.'),h('button',{type:'button',class:'b',onclick:()=>ask(sessText(log))},'Тренеру'),h('button',{type:'button',class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(x=>x!==log);save();render()}}},'Удалить')),...exercises));
+  });
+ }
+ return h('section',{class:'history-calendar-card'},h('div',{class:'history-calendar-heading'},h('div',{},h('h3',{},'История тренировок'),h('p',{class:'mut'},'Выбери дату, чтобы посмотреть все упражнения и подходы')),h('span',{class:'history-calendar-legend'},h('i',{},''),'Тренировка')),nav,h('div',{class:'history-calendar-grid'},...weekdays.map(x=>h('span',{class:'history-calendar-weekday'},x)),...cells),h('section',{class:'history-day-details'},...details));
+}
+
 let progressRange='week';
 function progress(){
  const exs=[...new Set(S.logs.flatMap(l=>l.entries.map(e=>e.ex)))];
@@ -394,7 +418,7 @@ function progress(){
  return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
   h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),st('Объём за период',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
   comparison,muscleAnalytics(),h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(chartPts,hasW?'расчётный максимум':'повторы')),body(),
-  h('h2',{},'История'),hist.slice().reverse().map(x=>h('div',{class:'card'},h('div',{class:'row'},h('b',{class:'grow'},fd(x.l.date)+' · '+x.l.name),h('button',{class:'b',onclick:()=>ask(sessText(x.l))},'Тренеру'),h('button',{class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(l=>l!==x.l);save();render()}}},'Удалить')),h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))));
+  historyCalendar());
 }
 const COACH_SYS='Ты персональный тренер по силовым тренировкам в приложении-дневнике. Отвечай по-русски, коротко и конкретно (до 200 слов), с цифрами из записей пользователя. Давай рекомендации по прогрессии нагрузки, объёму, отдыху и балансу групп мышц, учитывая цель, опыт и ограничения из профиля. Без Markdown-разметки: обычный текст, короткие списки через тире. Не ставь диагнозов; при боли, травмах или хронических заболеваниях советуй очную консультацию врача или тренера. Если данных мало, скажи об этом и предложи, что записывать.';
 const CH={msgs:[],busy:false,err:'',prov:'auto'};let cDraft='';
