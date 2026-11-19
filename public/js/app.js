@@ -398,7 +398,7 @@ function muscleAnalytics(){
   const viewer=h('div',{class:'muscle-3d-viewer','aria-label':'Интерактивная трёхмерная модель мышц человека'});
   const viewerStatus=h('div',{class:'muscle-3d-status',role:'status'},'Загрузка 3D-модели…');
   const viewerDetail=h('div',{class:'muscle-3d-detail'},'Выбери мышцу на модели, чтобы увидеть нагрузку и упражнения.');
-  const viewerControls=h('div',{class:'muscle-3d-controls'},h('span',{},'Перетаскивай модель по горизонтали'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить поворот'));
+  const viewerControls=h('div',{class:'muscle-3d-controls'},h('span',{},'Перетаскивай модель по горизонтали'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
   viewer.append(viewerStatus,viewerDetail,viewerControls);
   figures.append(viewer);
   const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Спина'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Бицепс'].sets,traps:cur['Спина'].sets};
