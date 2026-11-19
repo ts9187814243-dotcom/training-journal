@@ -446,4 +446,4 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 
 
 /* Keep comparison change labels on one line on phones. */
-@media(max-width:600px){.comparison-stats .stat:nth-child(5) .stat-label,.comparison-stats .stat:nth-child(6) .stat-label{font-size:10px;white-space:nowrap;letter-spacing:-.2px}}
+@media(max-width:600px){.comparison-stats .stat:nth-child(5) .stat-label,.comparison-stats .stat:nth-child(6) .stat-label{font-size:9px!important;white-space:nowrap!important;letter-spacing:-.35px;overflow-wrap:normal!important}}
