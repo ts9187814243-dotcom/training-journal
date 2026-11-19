@@ -677,3 +677,13 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .anatomy-legend-item b{color:var(--acc);font-variant-numeric:tabular-nums}
 .anatomy-legend-item.active{border-color:var(--acc);background:rgba(65,205,195,.12);color:var(--ink)}
 @media(max-width:420px){.anatomy-map{padding:12px}.anatomy-figures{gap:18px}.anatomy-figure svg{width:112px}.anatomy-map-heading{align-items:flex-start}.anatomy-scale{font-size:8px}}
+
+/* 3D anatomical mannequin: sculpted shading and fine muscle contours */
+.anatomy-map-3d{background:radial-gradient(ellipse at 50% 38%,rgba(47,139,142,.16),rgba(5,25,29,.12) 68%);overflow:hidden}
+.anatomy-map-3d .anatomy-figures{align-items:flex-end;gap:clamp(24px,9vw,70px);padding:12px 0 8px}
+.anatomy-map-3d .anatomy-figure{gap:8px}
+.anatomy-map-3d .anatomy-figure svg{width:clamp(125px,30vw,174px);max-height:390px;filter:drop-shadow(0 10px 13px rgba(0,0,0,.22))}
+.anatomy-map-3d .anatomy-region{transition:fill .18s,filter .18s,stroke .18s;outline:none}
+.anatomy-map-3d .anatomy-region:hover,.anatomy-map-3d .anatomy-region:focus,.anatomy-map-3d .anatomy-region.active{stroke:#c5fff4;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(62,244,221,.72))}
+.anatomy-map-3d .anatomy-contours{pointer-events:none;fill:none;stroke:rgba(38,71,77,.48);stroke-width:.75;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:420px){.anatomy-map-3d .anatomy-figures{gap:16px}.anatomy-map-3d .anatomy-figure svg{width:clamp(116px,39vw,145px);max-height:340px}}
