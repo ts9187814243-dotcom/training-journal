@@ -258,7 +258,10 @@ function workoutDatePicker(){
   const week=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x=>h('span',{class:'calendar-weekday'},x)),cells=[];
   for(let i=0;i<first;i++)cells.push(h('span',{class:'calendar-empty'}));
   for(let d=1;d<=days;d++){const value=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');cells.push(h('button',{type:'button',class:'calendar-day'+(value===selected?' selected':'')+(value===today()?' today':''),'aria-pressed':String(value===selected),onclick:()=>{selected=value;sess.date=value;update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},String(d)))}
-  panel.replaceChildren(head,h('div',{class:'workout-calendar-grid'},...week,...cells),h('button',{type:'button',class:'calendar-today',onclick:()=>{selected=today();sess.date=selected;month=new Date(selected+'T12:00');month.setDate(1);update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},'Сегодня'));
+  const manual=h('div',{class:'calendar-manual'},
+   h('label',{},'Или введите дату вручную',h('input',{type:'text',inputmode:'numeric',placeholder:'ДД.ММ.ГГГГ',maxlength:10,value:selected.split('-').reverse().join('.'),class:'calendar-manual-input'})),
+   h('button',{type:'button',class:'calendar-manual-apply',onclick:()=>{const raw=manual.querySelector('input').value.trim();const m=raw.match(/^(\\d{1,2})[.\\/-](\\d{1,2})[.\\/-](\\d{4})$/);if(!m){manual.querySelector('input').setCustomValidity('Введите дату в формате ДД.ММ.ГГГГ');manual.querySelector('input').reportValidity();return}const d=new Date(+m[3],+m[2]-1,+m[1]);if(d.getFullYear()!==+m[3]||d.getMonth()!==+m[2]-1||d.getDate()!==+m[1]){manual.querySelector('input').setCustomValidity('Такой даты не существует');manual.querySelector('input').reportValidity();return}selected=m[3]+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[1]).padStart(2,'0');sess.date=selected;month=new Date(selected+'T12:00');month.setDate(1);update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},'Применить'));
+  panel.replaceChildren(head,h('div',{class:'workout-calendar-grid'},...week,...cells),h('button',{type:'button',class:'calendar-today',onclick:()=>{selected=today();sess.date=selected;month=new Date(selected+'T12:00');month.setDate(1);update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},'Сегодня'),manual);
  };
  trigger.addEventListener('click',()=>{panel.hidden=!panel.hidden;trigger.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden)draw()});
  update();draw();wrap.append(trigger,panel);return wrap;
@@ -363,7 +366,7 @@ const sessText=l=>'Оцени мою тренировку от '+fd(l.date)+' «
 const planText=w=>'Оцени мой план «'+w.name+'»: '+w.ex.join(', ')+'. Сбалансирован ли он для моей цели? Что добавить или убрать?';
 function ctx(){
  const p=S.profile||{};
- const L=['Профиль: '+([['имя',p.name],['пол',p.sex],['возраст',p.age],['рост, см',p.h],['цель',p.goal],['опыт',p.exp],['тренировок в неделю',p.days],['травмы и ограничения',p.inj],['талия, см',p.waist],['грудь, см',p.chest],['бёдра, см',p.hips],['бицепс, см',p.arm]].filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join('; ')||'не заполнен')];
+ const L=['Профиль: '+([['имя',p.name],['пол',p.sex],['возраст',p.age],['рост, см',p.h],['цель',Array.isArray(p.goal)?p.goal.join(', '):p.goal],['опыт',p.exp],['тренировок в неделю',p.days],['травмы и ограничения',p.inj],['талия, см',p.waist],['грудь, см',p.chest],['бёдра, см',p.hips],['бицепс, см',p.arm]].filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join('; ')||'не заполнен')];
  L.push('Вес тела, кг: '+(S.body.slice(-10).map(b=>b.w+' ('+b.date+')').join(', ')||'нет записей'));
  L.push('Планы: '+(S.workouts.map(w=>w.name+' ['+w.ex.join(', ')+']').join('; ')||'нет'));
  L.push('Последние тренировки (вес×повторы):');
@@ -474,6 +477,15 @@ function coachV(){
 }
 function fld(l,k,o,nm){
  const p=S.profile;
+ if(k==='goal'&&o){
+  const selected=Array.isArray(p.goal)?p.goal:(p.goal?[p.goal]:[]);
+  p.goal=selected;
+  const choices=h('div',{class:'goal-multi-options'},...o.map(x=>{
+   const b=h('button',{type:'button',class:'goal-chip'+(selected.includes(x)?' is-selected':''),'aria-pressed':String(selected.includes(x)),onclick:()=>{const i=selected.indexOf(x);if(i>=0)selected.splice(i,1);else selected.push(x);p.goal=[...selected];b.classList.toggle('is-selected',selected.includes(x));b.setAttribute('aria-pressed',String(selected.includes(x)));save()}},x);
+   return b;
+  }));
+  return h('div',{class:'fl goal-multi'},h('span',{},l),h('p',{class:'mut'},'Можно выбрать несколько вариантов.'),choices);
+ }
  const el=o?h('select',{},['',...o].map(x=>h('option',{value:x,selected:x===(p[k]||'')},x?tr(x):tr('Не выбрано')))):h('input',{type:'text',inputmode:nm?'decimal':null,value:p[k]||''});
  el.addEventListener(o?'change':'input',()=>{p[k]=el.value.trim();save()});
  return h('label',{class:'fl'},l,el);
