@@ -447,3 +447,15 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 
 /* Keep comparison change labels on one line on phones. */
 @media(max-width:600px){.comparison-stats .stat:nth-child(5) .stat-label,.comparison-stats .stat:nth-child(6) .stat-label{font-size:9px!important;white-space:nowrap!important;letter-spacing:-.35px;overflow-wrap:normal!important}}
+
+/* Styled coach confirmation and post-workout feedback dialogs */
+.coach-confirm-dialog,.workout-feedback-dialog{border:1px solid rgba(79,211,204,.22);background:linear-gradient(155deg,var(--surf),color-mix(in srgb,var(--surf) 88%,var(--acc) 12%));box-shadow:0 28px 90px rgba(0,0,0,.38)}
+.coach-dialog-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:16px;margin-bottom:14px;background:rgba(73,211,202,.13);border:1px solid rgba(73,211,202,.25);color:var(--acc);font-size:25px}
+.coach-confirm-dialog h2,.workout-feedback-dialog h2{font-size:22px;letter-spacing:-.025em}
+.coach-dialog-preview{display:flex;flex-direction:column;gap:4px;margin:18px 0;padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:rgba(73,211,202,.07)}
+.coach-dialog-preview span{font-size:13px;color:var(--mut)}
+.workout-feeling-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:20px 0}
+.workout-feeling{min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:1px solid var(--line);border-radius:16px;background:rgba(73,211,202,.055);color:var(--ink);cursor:pointer}
+.workout-feeling>span{font-size:25px;color:var(--acc)}.workout-feeling strong{font-size:14px}.workout-feeling small{font-size:11px;line-height:1.3;color:var(--mut)}
+.workout-feeling:active{transform:scale(.98)}.workout-feeling.easy{border-color:rgba(72,190,140,.3)}.workout-feeling.hard{border-color:rgba(225,166,86,.35)}
+@media(max-width:520px){.confirm-overlay{padding:14px}.coach-confirm-dialog,.workout-feedback-dialog{padding:20px}.coach-confirm-dialog h2,.workout-feedback-dialog h2{font-size:20px}.workout-feeling-choices{grid-template-columns:1fr;gap:8px}.workout-feeling{display:grid;grid-template-columns:32px 1fr;grid-template-rows:auto auto;text-align:left;justify-items:start;padding:11px 13px}.workout-feeling>span{grid-row:1/3;align-self:center}.workout-feeling small{grid-column:2}}

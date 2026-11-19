@@ -268,7 +268,7 @@ function log(){
   h('div',{class:'row',style:'margin-top:16px'},h('button',{class:'b p',onclick:()=>{
     const entries=sess.entries.map(e=>({ex:e.ex,sets:e.sets.map(s=>({w:unitToKg(s.w),r:num(s.r)})).filter(s=>s.r>0)})).filter(e=>e.sets.length);
     if(!entries.length){err='Укажите повторы хотя бы в одном подходе.';return render()}
-    S.logs.push({id:uid(),date:sess.date,name:sess.name,entries});S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=entries[0].ex;sess=null;err='';go('progress')},},'Сохранить результат'),
+    showWorkoutFeedbackDialog({id:uid(),date:sess.date,name:sess.name,entries})},},'Сохранить результат'),
    h('button',{class:'b',onclick:()=>{sess=null;err='';render()}},'Отмена')));
 }
 
@@ -344,7 +344,7 @@ function ctx(){
  L.push('Вес тела, кг: '+(S.body.slice(-10).map(b=>b.w+' ('+b.date+')').join(', ')||'нет записей'));
  L.push('Планы: '+(S.workouts.map(w=>w.name+' ['+w.ex.join(', ')+']').join('; ')||'нет'));
  L.push('Последние тренировки (вес×повторы):');
- S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(sx).join(' | ')));
+ S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(sx).join(' | ')+(l.feeling?' | Самооценка нагрузки: '+({easy:'легко',normal:'нормально',hard:'тяжело'}[l.feeling]||l.feeling):'')));
  if(!S.logs.length)L.push('нет записей');
  return L.join('\n');
 }
@@ -400,7 +400,7 @@ function coachV(){
  inp.addEventListener('input',()=>cDraft=inp.value);
  const send=()=>{const t=inp.value.trim();if(t){cDraft='';ask(t)}};
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send()}});
- const off=CH.busy;if(CH.prov==='gemini')CH.prov='auto';
+ const off=CH.busy;
  return h('div',{},h('button',{class:'workout-library-tile',onclick:()=>{libraryOpen=true;render()}},h('span',{class:'workout-library-icon'},'🏋️'),h('span',{class:'workout-library-copy'},h('strong',{},'Каталог программ'),h('small',{},'Готовые тренировки')),h('span',{class:'workout-library-arrow'},'→')),h('div',{class:'row',style:'justify-content:space-between;margin-top:20px'},h('h2',{style:'margin:0'},'ИИ-тренер'),provSel()),
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
 
@@ -439,10 +439,7 @@ function coachV(){
        if(sets.length)prescriptions[ex]=sets;
       });
       if(!exercises.length)return;
-      if(!confirm('Создать план из '+exercises.length+' упражнений? Указанные ИИ веса и повторения будут подставлены при начале тренировки.'))return;
-      draft={name,ex:exercises,prescriptions};
-      err='';
-      go('plans');
+      showCoachPlanConfirm(exercises,name,prescriptions);
      }
     }));
    }else bubble.textContent=m.t||(last?'Думаю…':'');
@@ -459,6 +456,40 @@ function fld(l,k,o,nm){
  return h('label',{class:'fl'},l,el);
 }
 let settingsOpen=false;
+
+function showWorkoutFeedbackDialog(log){
+ const overlay=h('div',{class:'confirm-overlay workout-feedback-overlay',role:'presentation'});
+ const dialog=h('section',{class:'confirm-dialog workout-feedback-dialog',role:'dialog','aria-modal':'true','aria-labelledby':'workout-feedback-title','aria-describedby':'workout-feedback-description'});
+ const icon=h('div',{class:'coach-dialog-icon'},'♥');
+ const title=h('h2',{id:'workout-feedback-title'},'Как прошла тренировка?');
+ const desc=h('p',{id:'workout-feedback-description'},'Оцени общую нагрузку. Тренер учтёт это при подборе весов и объёма в следующий раз.');
+ const choices=h('div',{class:'workout-feeling-choices'},
+  h('button',{class:'workout-feeling easy',type:'button',onclick:()=>finish('easy')},h('span',{},'☀'),h('strong',{},'Легко'),h('small',{},'Можно немного прибавить')),
+  h('button',{class:'workout-feeling normal',type:'button',onclick:()=>finish('normal')},h('span',{},'◉'),h('strong',{},'Нормально'),h('small',{},'Нагрузка подходящая')),
+  h('button',{class:'workout-feeling hard',type:'button',onclick:()=>finish('hard')},h('span',{},'〰'),h('strong',{},'Тяжело'),h('small',{},'Нужно учесть восстановление')));
+ const skip=h('button',{class:'b',type:'button',onclick:()=>finish(null)},'Пропустить');
+ function close(){overlay.remove();document.removeEventListener('keydown',onKey)}
+ function finish(feeling){if(feeling)log.feeling=feeling;S.logs.push(log);S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=log.entries[0].ex;sess=null;err='';close();go('progress')}
+ const onKey=e=>{if(e.key==='Escape')finish(null)};
+ dialog.append(icon,title,desc,choices,h('div',{class:'confirm-actions'},skip));overlay.append(dialog);
+ overlay.addEventListener('click',e=>{if(e.target===overlay)finish(null)});
+ document.addEventListener('keydown',onKey);document.body.append(overlay);
+}
+function showCoachPlanConfirm(exercises,name,prescriptions){
+ const overlay=h('div',{class:'confirm-overlay coach-dialog-overlay',role:'presentation'});
+ const dialog=h('section',{class:'confirm-dialog coach-confirm-dialog',role:'alertdialog','aria-modal':'true','aria-labelledby':'coach-plan-title','aria-describedby':'coach-plan-description'});
+ const icon=h('div',{class:'coach-dialog-icon'},'✦');
+ const title=h('h2',{id:'coach-plan-title'},'Создать план тренировки?');
+ const desc=h('p',{id:'coach-plan-description'},'В план попадут '+exercises.length+' упражнений. Сохранённые ИИ веса и повторения автоматически появятся при начале тренировки.');
+ const preview=h('div',{class:'coach-dialog-preview'},h('strong',{},name),h('span',{},Object.keys(prescriptions).length+' упражнений с назначенными подходами'));
+ const cancel=h('button',{class:'b',type:'button',onclick:close},'Отмена');
+ const confirm=h('button',{class:'b p',type:'button',onclick:()=>{draft={name,ex:exercises,prescriptions};err='';close();go('plans')}},'Создать план');
+ function close(){overlay.remove();document.removeEventListener('keydown',onKey)}
+ const onKey=e=>{if(e.key==='Escape')close()};
+ dialog.append(icon,title,desc,preview,h('div',{class:'confirm-actions'},cancel,confirm));overlay.append(dialog);
+ overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+ document.addEventListener('keydown',onKey);document.body.append(overlay);confirm.focus();
+}
 
 function showDeleteAccountDialog(){
  const overlay=h('div',{class:'confirm-overlay',role:'presentation'});
