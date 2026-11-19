@@ -364,19 +364,54 @@ function muscleAnalytics(){
  const cards=groups.map(g=>({g,...cur[g],previous:prev[g]})).filter(x=>x.sets||x.previous.sets).sort((a,b)=>b.sets-a.sets),total=cards.reduce((n,x)=>n+x.sets,0),max=Math.max(1,...cards.map(x=>x.sets));
  const muscleMap=()=>{
   const values=Object.fromEntries(groups.map(g=>[g,cur[g].sets]));
-  const shapes={
-   front:[['Плечи','M49 69 C36 63 29 72 32 84 L42 96 L53 87 Z'],['Плечи','M71 69 C84 63 91 72 88 84 L78 96 L67 87 Z'],['Грудь','M48 91 C53 84 61 84 60 97 L58 113 L43 108 L39 99 Z'],['Грудь','M72 91 C67 84 59 84 60 97 L62 113 L77 108 L81 99 Z'],['Бицепс','M31 91 C24 91 22 104 26 119 L34 135 L42 128 L39 108 Z'],['Бицепс','M89 91 C96 91 98 104 94 119 L86 135 L78 128 L81 108 Z'],['Пресс','M49 115 L71 115 L73 158 L47 158 Z'],['Квадрицепсы','M43 160 L59 160 L57 221 L44 222 L38 190 Z'],['Квадрицепсы','M61 160 L77 160 L82 190 L76 222 L63 221 Z'],['Икры','M42 230 L56 230 L54 286 L44 286 L39 258 Z'],['Икры','M64 230 L78 230 L81 258 L76 286 L66 286 Z']],
-   back:[['Плечи','M48 69 C35 64 29 74 33 88 L44 98 L55 88 Z'],['Плечи','M72 69 C85 64 91 74 87 88 L76 98 L65 88 Z'],['Спина','M46 91 Q60 82 74 91 L78 127 L60 142 L42 127 Z'],['Трицепс','M31 94 C24 94 22 108 27 124 L35 137 L42 128 L39 108 Z'],['Трицепс','M89 94 C96 94 98 108 93 124 L85 137 L78 128 L81 108 Z'],['Ягодицы','M43 151 Q60 143 77 151 L78 177 Q60 188 42 177 Z'],['Бицепс бедра','M43 179 L59 179 L57 224 L43 224 L38 199 Z'],['Бицепс бедра','M61 179 L77 179 L82 199 L77 224 L63 224 Z'],['Икры','M42 230 L56 230 L54 286 L44 286 L39 258 Z'],['Икры','M64 230 L78 230 L81 258 L76 286 L66 286 Z']]
+  const parts={
+   front:[
+    ['Плечи','M47 57 C36 53 29 62 30 74 Q32 86 43 91 L53 78 L54 64 Z'],
+    ['Плечи','M73 57 C84 53 91 62 90 74 Q88 86 77 91 L67 78 L66 64 Z'],
+    ['Грудь','M48 77 Q54 69 60 76 Q66 69 72 77 L78 91 Q74 101 60 103 Q46 101 42 91 Z'],
+    ['Бицепс','M31 83 Q24 81 22 94 L27 119 Q30 128 38 126 L43 111 L39 91 Z'],
+    ['Бицепс','M89 83 Q96 81 98 94 L93 119 Q90 128 82 126 L77 111 L81 91 Z'],
+    ['Пресс','M49 103 Q60 107 71 103 L73 145 Q60 152 47 145 Z'],
+    ['Пресс','M51 111 Q60 114 69 111 L69 121 Q60 124 51 121 Z'],
+    ['Пресс','M50 124 Q60 127 70 124 L70 135 Q60 138 50 135 Z'],
+    ['Квадрицепсы','M43 151 Q50 148 58 151 L56 193 Q53 211 43 218 Q37 211 38 194 Z'],
+    ['Квадрицепсы','M62 151 Q70 148 77 151 L82 194 Q83 211 77 218 Q67 211 64 193 Z'],
+    ['Икры','M42 224 Q48 220 55 224 L54 270 Q52 282 45 284 Q39 280 39 268 Z'],
+    ['Икры','M65 224 Q72 220 78 224 L81 268 Q81 280 75 284 Q68 282 66 270 Z']
+   ],
+   back:[
+    ['Плечи','M47 57 Q34 51 29 66 Q28 81 43 91 L55 77 L54 63 Z'],
+    ['Плечи','M73 57 Q86 51 91 66 Q92 81 77 91 L65 77 L66 63 Z'],
+    ['Спина','M48 75 Q60 68 72 75 L78 111 Q73 126 60 132 Q47 126 42 111 Z'],
+    ['Спина','M52 83 Q60 79 68 83 L66 119 L60 126 L54 119 Z'],
+    ['Трицепс','M31 83 Q24 82 22 96 L27 120 Q31 130 38 126 L43 109 L39 91 Z'],
+    ['Трицепс','M89 83 Q96 82 98 96 L93 120 Q89 130 82 126 L77 109 L81 91 Z'],
+    ['Ягодицы','M43 137 Q51 130 60 137 Q69 130 77 137 L79 160 Q72 172 60 172 Q48 172 41 160 Z'],
+    ['Бицепс бедра','M43 174 Q50 170 58 174 L56 214 Q52 225 44 228 Q38 220 39 207 Z'],
+    ['Бицепс бедра','M62 174 Q70 170 77 174 L81 207 Q82 220 76 228 Q68 225 64 214 Z'],
+    ['Икры','M42 230 Q48 226 55 230 L54 270 Q52 282 45 284 Q39 280 39 268 Z'],
+    ['Икры','M65 230 Q72 226 78 230 L81 268 Q81 280 75 284 Q68 282 66 270 Z']
+   ]
   };
-  const wrap=h('div',{class:'anatomy-map'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Подсветка показывает группы, получившие нагрузку за выбранный период')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
+  const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
   const figures=h('div',{class:'anatomy-figures'});
   for(const side of ['front','back']){
-   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 120 310');svg.setAttribute('role','img');svg.setAttribute('aria-label',side==='front'?'Вид тела спереди':'Вид тела сзади');
-   const base=document.createElementNS('http://www.w3.org/2000/svg','path');base.setAttribute('d','M60 8 C49 8 44 17 46 28 C47 36 52 40 60 40 C68 40 73 36 74 28 C76 17 71 8 60 8 Z M48 44 C39 45 33 51 29 64 L20 99 Q18 107 24 110 Q29 112 32 105 L41 79 L43 129 L39 157 L35 219 Q34 229 43 230 Q50 230 51 220 L60 165 L69 220 Q70 230 77 230 Q86 229 85 219 L81 157 L77 129 L79 79 L88 105 Q91 112 96 110 Q102 107 100 99 L91 64 C87 51 81 45 72 44 Z M43 230 L53 230 L52 288 Q51 296 44 296 Q37 296 38 288 Z M67 230 L77 230 L82 288 Q83 296 76 296 Q69 296 68 288 Z');base.setAttribute('fill','rgba(132,160,164,.22)');base.setAttribute('stroke','rgba(132,190,190,.55)');base.setAttribute('stroke-width','1.4');svg.append(base);
-   for(const [g,d] of shapes[side]){
-    const count=values[g]||0,opacity=count?(.22+.72*count/max):.055;
-    const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',d);p.setAttribute('fill',count?'rgba(63,218,205,'+opacity+')':'rgba(132,160,164,.07)');p.setAttribute('stroke',count?'rgba(112,255,239,.8)':'rgba(132,160,164,.16)');p.setAttribute('stroke-width','1');p.setAttribute('class','anatomy-region'+(muscleDetail===g?' active':''));p.style.cursor='pointer';p.addEventListener('click',()=>{muscleDetail=muscleDetail===g?'':g;render()});const title=document.createElementNS('http://www.w3.org/2000/svg','title');title.textContent=g+': '+count+' подходов';p.append(title);svg.append(p);
+   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 120 300');svg.setAttribute('role','img');svg.setAttribute('aria-label',side==='front'?'Анатомическая модель спереди':'Анатомическая модель сзади');
+   const defs=document.createElementNS(ns,'defs');
+   defs.innerHTML='<linearGradient id="body-'+side+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#718b91"/><stop offset=".22" stop-color="#d1dfe0"/><stop offset=".5" stop-color="#f0f4f1"/><stop offset=".78" stop-color="#aabfc0"/><stop offset="1" stop-color="#607b80"/></linearGradient><linearGradient id="muscle-'+side+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eff8f5" stop-opacity=".84"/><stop offset=".48" stop-color="#9db8b8" stop-opacity=".65"/><stop offset="1" stop-color="#536f75" stop-opacity=".9"/></linearGradient><filter id="shadow-'+side+'" x="-30%" y="-20%" width="160%" height="150%"><feGaussianBlur stdDeviation="2.2"/></filter>';
+   svg.append(defs);
+   const shadow=document.createElementNS(ns,'ellipse');shadow.setAttribute('cx','60');shadow.setAttribute('cy','292');shadow.setAttribute('rx','30');shadow.setAttribute('ry','4');shadow.setAttribute('fill','#000');shadow.setAttribute('opacity','.28');shadow.setAttribute('filter','url(#shadow-'+side+')');svg.append(shadow);
+   const base=document.createElementNS(ns,'path');
+   base.setAttribute('d','M52 7 Q60 3 68 7 Q76 14 72 29 Q70 37 66 40 L66 46 Q79 45 88 54 Q96 63 98 82 L104 111 Q105 119 98 121 Q92 122 90 114 L82 87 L80 128 Q83 148 82 169 L85 216 Q86 225 79 229 L81 271 Q82 284 74 287 Q66 288 65 278 L60 231 L55 278 Q54 288 46 287 Q38 284 39 271 L41 229 Q34 225 35 216 L38 169 Q37 148 40 128 L38 87 L30 114 Q28 122 22 121 Q15 119 16 111 L22 82 Q24 63 32 54 Q41 45 54 46 L54 40 Q50 37 48 29 Q44 14 52 7 Z');
+   base.setAttribute('fill','url(#body-'+side+')');base.setAttribute('stroke','#d7e8e4');base.setAttribute('stroke-opacity','.55');base.setAttribute('stroke-width','1.2');svg.append(base);
+   const neck=document.createElementNS(ns,'path');neck.setAttribute('d','M53 36 Q60 43 67 36 L67 49 Q60 54 53 49 Z');neck.setAttribute('fill','url(#muscle-'+side+')');neck.setAttribute('opacity','.8');svg.append(neck);
+   for(const [g,d] of parts[side]){
+    const count=values[g]||0,opacity=count?(.24+.68*count/max):.08;
+    const p=document.createElementNS(ns,'path');p.setAttribute('d',d);p.setAttribute('fill',count?'rgba(44,211,196,'+opacity+')':'url(#muscle-'+side+')');p.setAttribute('stroke',count?'rgba(151,255,239,.92)':'rgba(49,83,89,.45)');p.setAttribute('stroke-width','.8');p.setAttribute('class','anatomy-region'+(muscleDetail===g?' active':''));p.setAttribute('tabindex','0');p.setAttribute('role','button');p.setAttribute('aria-label',g+', '+count+' подходов');p.style.cursor='pointer';
+    const select=()=>{muscleDetail=muscleDetail===g?'':g;render()};p.addEventListener('click',select);p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}});
+    const title=document.createElementNS(ns,'title');title.textContent=g+': '+count+' подходов';p.append(title);svg.append(p);
    }
+   const detail=document.createElementNS(ns,'g');detail.setAttribute('class','anatomy-contours');detail.innerHTML=side==='front'?'<path d="M54 50 Q60 58 66 50 M43 92 Q60 108 77 92 M60 105 V147 M48 115 Q60 119 72 115 M48 128 Q60 132 72 128 M48 141 Q60 145 72 141 M41 154 Q49 164 56 153 M64 153 Q72 164 80 154 M46 230 Q50 242 53 252 M74 230 Q70 242 67 252" />':'<path d="M53 49 Q60 57 67 49 M43 91 Q60 103 77 91 M60 82 V132 M47 112 Q60 119 73 112 M43 139 Q60 151 77 139 M60 139 V170 M45 177 Q51 192 54 211 M75 177 Q69 192 66 211 M45 232 Q50 246 52 259 M75 232 Q70 246 68 259"/>';svg.append(detail);
    figures.append(h('div',{class:'anatomy-figure'},svg,h('span',{},side==='front'?'Спереди':'Сзади')));
   }
   wrap.append(figures);
