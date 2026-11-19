@@ -480,7 +480,7 @@ function progressExercisePicker(exs){
   h('div',{class:'progress-exercise-dialog-head'},h('strong',{},'Выбрать упражнение'),h('button',{type:'button',class:'progress-exercise-close','aria-label':'Закрыть',onclick:()=>{progressPickerOpen=false;render()}},'×')),
   search,list,count);
  const overlay=h('div',{class:'progress-exercise-overlay',onclick:e=>{if(e.target===overlay){progressPickerOpen=false;render()}}},dialog);
- wrap.append(overlay);
+ document.body.append(overlay);
  return wrap;
 }
 function progress(){
