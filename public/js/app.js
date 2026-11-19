@@ -232,16 +232,17 @@ function plans(){
     draft.ex.length?null:h('p',{class:'mut'},'Добавьте упражнения в том порядке, в каком будете их делать.'),
     err&&h('p',{class:'err'},err),
     h('div',{class:'row'},h('button',{class:'b p',onclick:()=>{const n=nm.value.trim();if(!n||!draft.ex.length){err='Введите название и добавьте хотя бы одно упражнение.';draft.name=nm.value;return render()}
-      if(draft.id){const w=S.workouts.find(x=>x.id===draft.id);if(w){w.name=n;w.ex=[...draft.ex]}}else S.workouts.push({id:uid(),name:n,ex:[...draft.ex]});save();draft=null;err='';render()}},'Сохранить тренировку'),h('button',{class:'b',onclick:()=>{draft=null;err='';render()}},'Отмена'))));
+      if(draft.id){const w=S.workouts.find(x=>x.id===draft.id);if(w){w.name=n;w.ex=[...draft.ex];if(draft.prescriptions&&Object.keys(draft.prescriptions).length)w.prescriptions={...draft.prescriptions};else delete w.prescriptions}}else S.workouts.push({id:uid(),name:n,ex:[...draft.ex],...(draft.prescriptions&&Object.keys(draft.prescriptions).length?{prescriptions:{...draft.prescriptions}}:{})});save();draft=null;err='';render()}},'Сохранить тренировку'),h('button',{class:'b',onclick:()=>{draft=null;err='';render()}},'Отмена'))));
  }
  return h('div',{},calV(),h('h2',{},'Мои тренировки'),
   S.workouts.length?S.workouts.map(w=>h('div',{class:'card'},h('h3',{},w.name),h('p',{class:'mut',style:'margin:6px 0 12px'},w.ex.join(', ')),
-    h('div',{class:'row'},h('button',{class:'b p',onclick:()=>startSess(w)},'Начать'),h('button',{class:'b',onclick:()=>{draft={id:w.id,name:w.name,ex:[...w.ex]};render()}},'Редактировать'),h('button',{class:'b',onclick:()=>ask(planText(w))},'Спросить тренера'),h('span',{class:'grow'}),
+    w.prescriptions&&Object.keys(w.prescriptions).length?h('p',{class:'mut',style:'margin:0 0 10px;color:var(--acc)'},'✓ Сохранены веса и повторения для '+Object.keys(w.prescriptions).length+' упражнений'):null,
+    h('div',{class:'row'},h('button',{class:'b p',onclick:()=>startSess(w)},'Начать'),h('button',{class:'b',onclick:()=>{draft={id:w.id,name:w.name,ex:[...w.ex],prescriptions:w.prescriptions?{...w.prescriptions}:{}};render()}},'Редактировать'),h('button',{class:'b',onclick:()=>ask(planText(w))},'Спросить тренера'),h('span',{class:'grow'}),
      h('button',{class:'x',onclick:()=>{if(confirm('Удалить тренировку «'+w.name+'»? Записанные результаты останутся.')){S.workouts=S.workouts.filter(x=>x!==w);save();render()}}},'Удалить')))):
    h('p',{class:'mut'},'Пока пусто. Составьте первую тренировку: название и список упражнений.'),
   h('button',{class:'b p',onclick:()=>{draft={name:'',ex:[]};render()}},'Составить тренировку'));
 }
-function startSess(w){sess={wid:w.id,name:w.name,date:today(),entries:w.ex.map(ex=>({ex,sets:lastSets(ex)}))};go('log')}
+function startSess(w){sess={wid:w.id,name:w.name,date:today(),entries:w.ex.map(ex=>({ex,sets:w.prescriptions&&Array.isArray(w.prescriptions[ex])&&w.prescriptions[ex].length?w.prescriptions[ex].map(x=>({w:x.w||'',r:x.r||''})):lastSets(ex)}))};go('log')}
 
 function log(){
  if(!sess)return h('div',{},h('h2',{},'Записать тренировку'),
@@ -413,7 +414,36 @@ function coachV(){
      onCopy:()=>{const value=m.t||'';if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).catch(()=>{});},
      onRetry:()=>{if(previous&&!CH.busy)ask(previous.t)},
      onClarify:()=>{cDraft='Уточни, пожалуйста, рекомендации из предыдущего ответа и объясни, как их применить.';render();const field=document.querySelector('#v input[aria-label="Сообщение тренеру"]');if(field)field.focus();},
-     onAddPlan:()=>{const exercises=(m.structured.exercises||[]).map(x=>x.name).filter(Boolean);if(!exercises.length)return;if(!confirm('Создать новый план из '+exercises.length+' рекомендованных упражнений?'))return;const name='Рекомендации ИИ — '+new Date().toLocaleDateString();S.workouts.push({id:uid(),name,exercises:undefined,ex:exercises});save();alert('План «'+name+'» добавлен в раздел «Планы». Веса и подходы из карточек можно использовать при записи тренировки.');go('plans');}
+     onAddPlan:()=>{
+      const items=(m.structured.exercises||[]).filter(x=>x&&x.name);
+      if(!items.length)return;
+      const name='Рекомендации ИИ — '+new Date().toLocaleDateString();
+      const prescriptions={};
+      const exercises=[];
+      items.forEach(item=>{
+       const ex=String(item.name).trim();
+       if(!ex||exercises.includes(ex))return;
+       exercises.push(ex);
+       const sets=(item.sets||[]).map(set=>{
+        const raw=String(set.weight||'').trim(), reps=String(set.reps||'').trim();
+        if(!raw||!reps)return null;
+        const match=raw.match(/(-?\\d+(?:[.,]\\d+)?)/);
+        if(!match)return null;
+        let weight=Number(match[1].replace(',','.'));
+        if(!Number.isFinite(weight)||weight<=0)return null;
+        const unit=raw.toLowerCase();
+        if(/\\b(lb|lbs|фунт|фунта|фунтов)\\b/.test(unit)&&S.settings.units!=='lb')weight/=2.2046226218;
+        else if(/\\b(кг|kg|килограмм)\\b/.test(unit)&&S.settings.units==='lb')weight*=2.2046226218;
+        return {w:String(Number(weight.toFixed(2))),r:reps};
+       }).filter(Boolean);
+       if(sets.length)prescriptions[ex]=sets;
+      });
+      if(!exercises.length)return;
+      if(!confirm('Создать план из '+exercises.length+' упражнений? Указанные ИИ веса и повторения будут подставлены при начале тренировки.'))return;
+      draft={name,ex:exercises,prescriptions};
+      err='';
+      go('plans');
+     }
     }));
    }else bubble.textContent=m.t||(last?'Думаю…':'');
    return bubble;
