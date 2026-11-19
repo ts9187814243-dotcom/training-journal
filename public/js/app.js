@@ -427,13 +427,13 @@ function coachV(){
        const sets=(item.sets||[]).map(set=>{
         const raw=String(set.weight||'').trim(), reps=String(set.reps||'').trim();
         if(!raw||!reps)return null;
-        const match=raw.match(/(-?\\d+(?:[.,]\\d+)?)/);
+        const match=raw.match(/(-?\d+(?:[.,]\d+)?)/);
         if(!match)return null;
         let weight=Number(match[1].replace(',','.'));
         if(!Number.isFinite(weight)||weight<=0)return null;
         const unit=raw.toLowerCase();
-        if(/\\b(lb|lbs|фунт|фунта|фунтов)\\b/.test(unit)&&S.settings.units!=='lb')weight/=2.2046226218;
-        else if(/\\b(кг|kg|килограмм)\\b/.test(unit)&&S.settings.units==='lb')weight*=2.2046226218;
+        if(/\b(lb|lbs|фунт|фунта|фунтов)\b/.test(unit)&&S.settings.units!=='lb')weight/=2.2046226218;
+        else if(/\b(кг|kg|килограмм)\b/.test(unit)&&S.settings.units==='lb')weight*=2.2046226218;
         return {w:String(Number(weight.toFixed(2))),r:reps};
        }).filter(Boolean);
        if(sets.length)prescriptions[ex]=sets;
