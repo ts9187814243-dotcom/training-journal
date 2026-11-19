@@ -461,6 +461,8 @@ function historyCalendar(){
 
 let progressRange='week',progressPickerOpen=false,progressPickerQuery='';
 function progressExercisePicker(exs){
+ // The modal must be attached to body: transformed app containers can trap position:fixed.
+ document.querySelector('.progress-exercise-overlay')?.remove();
  const wrap=h('div',{class:'progress-exercise-picker'});
  const trigger=h('button',{type:'button',class:'progress-exercise-trigger','aria-haspopup':'dialog','aria-expanded':String(progressPickerOpen),onclick:()=>{progressPickerOpen=true;progressPickerQuery='';render()}},h('span',{},sel||'Выбрать упражнение'),h('span',{class:'progress-exercise-chevron'},'▾'));
  wrap.append(trigger);
