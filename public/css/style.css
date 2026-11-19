@@ -731,3 +731,6 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
  .muscle-3d-controls{font-size:10px;gap:6px;padding:8px 6px 10px}
  .muscle-3d-reset{max-width:100%;white-space:normal}
 }
+
+.muscle-3d-controls .muscle-3d-zoom{min-width:34px;min-height:32px;padding:4px 10px!important;font-size:17px!important;line-height:1}
+.muscle-3d-canvas{touch-action:none!important}
