@@ -352,6 +352,42 @@ function backup(){
   h('button',{class:'b p',onclick:()=>{try{const o=JSON.parse(ta.value);if(!Array.isArray(o.workouts)||!Array.isArray(o.logs))throw 0;if(!confirm('Заменить текущие данные загруженными?'))return;S={workouts:o.workouts,logs:o.logs,body:Array.isArray(o.body)?o.body:[],profile:o.profile&&typeof o.profile==='object'?o.profile:{}};save();bk=null;render()}catch(e){em.textContent='Не удалось прочитать данные. Вставьте текст копии целиком.'}}},'Загрузить'),
   h('button',{class:'b',onclick:()=>{bk=null;render()}},'Скрыть')));
 }
+function muscleAnalytics(){
+ const groups=['Грудь','Спина','Плечи','Бицепс','Трицепс','Квадрицепсы','Бицепс бедра','Ягодицы','Икры','Пресс'];
+ const data=Object.fromEntries(groups.map(g=>[g,{sets:0,volume:0,workouts:new Set(),exercises:new Set()}]));
+ const classify=name=>{
+  const n=name.toLowerCase(),meta=EXM[name],g=meta&&meta.g;
+  if(g==='Грудь')return 'Грудь';
+  if(g==='Спина')return /румын|становая|гиперэкстенз/.test(n)?'Бицепс бедра':'Спина';
+  if(g==='Плечи')return 'Плечи';
+  if(g==='Руки')return /разгиб|француз|трицепс|брусья/.test(n)?'Трицепс':'Бицепс';
+  if(g==='Пресс')return 'Пресс';
+  if(g==='Ноги'){
+   if(/икр|носк/.test(n))return 'Икры';
+   if(/ягод|мост|отведени/.test(n))return 'Ягодицы';
+   if(/румын|сгибан.*ног/.test(n))return 'Бицепс бедра';
+   return 'Квадрицепсы';
+  }
+  return null;
+ };
+ S.logs.forEach(log=>log.entries.forEach(entry=>{
+  const group=classify(entry.ex);if(!group||!data[group])return;
+  const item=data[group];item.workouts.add(log.date);item.exercises.add(entry.ex);
+  (entry.sets||[]).forEach(set=>{if((Number(set.r)||0)>0){item.sets++;if(Number(set.w)>0)item.volume+=Number(set.w)*Number(set.r)}});
+ }));
+ const total=groups.reduce((n,g)=>n+data[g].sets,0),max=Math.max(1,...groups.map(g=>data[g].sets));
+ const cards=groups.map(g=>({g,...data[g]})).filter(x=>x.sets).sort((a,b)=>b.sets-a.sets);
+ if(!cards.length)return h('div',{class:'card muscle-analytics'},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},'Добавьте упражнения в тренировочный журнал — здесь появится распределение подходов.'));
+ return h('section',{class:'muscle-analytics'},
+  h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},'По всем сохранённым тренировкам')) ,h('span',{class:'muscle-total'},total+' подходов')),
+  h('div',{class:'muscle-bars'},...cards.map(x=>h('div',{class:'muscle-row'},
+   h('div',{class:'muscle-row-head'},h('b',{},x.g),h('span',{},x.sets+' подх.')),
+   h('div',{class:'muscle-track'},h('span',{class:'muscle-fill',style:'width:'+Math.max(3,x.sets/max*100)+'%'})),
+   h('div',{class:'muscle-row-meta'},h('span',{},x.workouts.size+' трен.'),h('span',{},x.exercises.size+' упр.'),h('span',{},x.volume?Math.round(x.volume).toLocaleString('ru-RU')+' кг·повт.':'без учёта веса'))
+  ))),
+  h('p',{class:'muscle-footnote'},'Подходы распределяются по основной группе упражнения. Для упражнений с собственным весом объём в кг не рассчитывается.')
+ );
+}
 let progressRange='week';
 function progress(){
  const exs=[...new Set(S.logs.flatMap(l=>l.entries.map(e=>e.ex)))];
@@ -374,7 +410,7 @@ function progress(){
  const mw=Math.max(...all.map(s=>s.w)),mr=Math.max(...all.map(s=>s.r)),vol=all.reduce((a,s)=>a+(s.w||1)*s.r,0);
  return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
   h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),st('Объём за период',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
-  comparison,h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(chartPts,hasW?'расчётный максимум':'повторы')),body(),
+  comparison,muscleAnalytics(),h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(chartPts,hasW?'расчётный максимум':'повторы')),body(),
   h('h2',{},'История'),hist.slice().reverse().map(x=>h('div',{class:'card'},h('div',{class:'row'},h('b',{class:'grow'},fd(x.l.date)+' · '+x.l.name),h('button',{class:'b',onclick:()=>ask(sessText(x.l))},'Тренеру'),h('button',{class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(l=>l!==x.l);save();render()}}},'Удалить')),h('div',{class:'mut'},x.en.sets.map(s=>(s.w?s.w+'×':'')+s.r).join(', ')))));
 }
 const COACH_SYS='Ты персональный тренер по силовым тренировкам в приложении-дневнике. Отвечай по-русски, коротко и конкретно (до 200 слов), с цифрами из записей пользователя. Давай рекомендации по прогрессии нагрузки, объёму, отдыху и балансу групп мышц, учитывая цель, опыт и ограничения из профиля. Без Markdown-разметки: обычный текст, короткие списки через тире. Не ставь диагнозов; при боли, травмах или хронических заболеваниях советуй очную консультацию врача или тренера. Если данных мало, скажи об этом и предложи, что записывать.';
