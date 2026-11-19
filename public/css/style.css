@@ -718,3 +718,16 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
  .muscle-3d-detail{padding:8px 10px 2px;overflow-wrap:anywhere}
  .muscle-3d-controls{padding:8px 8px 12px}
 }
+
+/* Stable responsive canvas bounds: prevent the 3D viewport from overflowing on phones */
+.muscle-3d-viewer{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:100%;min-width:0;overflow:hidden;box-sizing:border-box}
+.muscle-3d-viewer *{box-sizing:border-box}
+.muscle-3d-canvas{display:block!important;width:100%!important;height:auto!important;max-width:100%!important;max-height:none!important;flex:0 0 auto;object-fit:contain;touch-action:pan-y}
+.muscle-3d-detail,.muscle-3d-controls{width:100%;min-width:0;overflow-wrap:anywhere}
+@media(max-width:600px){
+ .muscle-3d-viewer{border-radius:16px}
+ .muscle-3d-status{font-size:10px;max-width:calc(100% - 16px);padding:4px 8px}
+ .muscle-3d-detail{font-size:12px;padding:8px 8px 2px}
+ .muscle-3d-controls{font-size:10px;gap:6px;padding:8px 6px 10px}
+ .muscle-3d-reset{max-width:100%;white-space:normal}
+}
