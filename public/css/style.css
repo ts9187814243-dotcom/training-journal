@@ -496,3 +496,15 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 /* Progressive overload guidance inside active workout cards. */
 .workout-progression-hint{margin:0 0 12px;padding:0 2px;color:var(--mut);font-size:12px;line-height:1.45}
 @media(min-width:700px){.workout-progression-hint{font-size:13px}}
+
+
+/* Rest timer: full-screen translucent overlay with centered timer and round controls */
+#rest{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:0;padding:24px;border:0;border-radius:0;background:rgba(3,13,16,.62);box-shadow:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#rest[hidden]{display:none}
+.rest-dialog{width:min(360px,calc(100vw - 40px));min-height:270px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:34px 28px 26px;border:1px solid rgba(100,225,218,.26);border-radius:28px;background:rgba(12,39,43,.82);box-shadow:0 24px 80px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px)}
+#rt{display:block;width:100%;text-align:center;font-size:clamp(34px,9vw,48px);line-height:1.15;font-weight:800;letter-spacing:-1.5px;font-variant-numeric:tabular-nums;color:var(--acc)}
+.rest-actions{display:flex;align-items:center;justify-content:center;gap:18px}
+#rest .rest-actions button{width:58px;height:58px;min-height:58px;padding:0;display:grid;place-items:center;border:1px solid rgba(102,226,219,.42);border-radius:50%;background:rgba(72,207,199,.16);color:#a5f4ee;font:700 18px Inter,system-ui,sans-serif;box-shadow:0 5px 18px rgba(0,0,0,.2);transition:transform .15s,background .15s,border-color .15s}
+#rest .rest-actions button:active{transform:scale(.94);background:rgba(72,207,199,.3)}
+#rest #rs{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:var(--ink)}
+@media(max-width:520px){#rest{padding:18px}.rest-dialog{width:min(330px,calc(100vw - 36px));min-height:250px;padding:28px 22px 24px;gap:30px;border-radius:24px}.rest-actions{gap:16px}#rest .rest-actions button{width:56px;height:56px;min-height:56px}}
