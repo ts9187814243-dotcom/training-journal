@@ -384,7 +384,7 @@ function historyCalendar(){
  const nav=h('div',{class:'history-calendar-head'},h('button',{type:'button',class:'calendar-nav','aria-label':'Предыдущий месяц',onclick:()=>{historyMonth.setMonth(historyMonth.getMonth()-1);render()}},'‹'),h('strong',{},historyMonth.toLocaleDateString(locale,{month:'long',year:'numeric'})),h('button',{type:'button',class:'calendar-nav','aria-label':'Следующий месяц',onclick:()=>{historyMonth.setMonth(historyMonth.getMonth()+1);render()}},'›'));
  const logs=historySelected?(grouped[historySelected]||[]):[],details=[];
  if(historySelected){
-  details.push(h('div',{class:'history-day-title'},h('h3',{},new Date(historySelected+'T12:00:00').toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'})),h('span',{class:'mut'},logs.length?logs.length+' тренировок':'Нет тренировок')));
+  details.push(h('div',{class:'history-day-title'},h('div',{},h('h3',{},new Date(historySelected+'T12:00:00').toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'})),h('span',{class:'mut'},logs.length?logs.length+' тренировок':'Нет тренировок')),h('button',{type:'button',class:'history-modal-close','aria-label':'Закрыть',onclick:()=>{historySelected='';render()}},'×')));
   if(!logs.length)details.push(h('p',{class:'mut'},'В этот день тренировок не записано.'));
   logs.forEach(log=>{
    const entries=log.entries||[],sets=entries.reduce((n,e)=>n+(e.sets||[]).length,0),volume=entries.reduce((n,e)=>n+(e.sets||[]).reduce((v,x)=>v+(Number(x.w)||0)*(Number(x.r)||0),0),0);
@@ -392,7 +392,7 @@ function historyCalendar(){
    details.push(h('article',{class:'history-workout-card'},h('div',{class:'history-workout-summary'},h('h4',{},log.name||'Тренировка'),h('span',{},entries.length+' упражн. · '+sets+' подходов')),h('div',{class:'history-workout-stats'},h('span',{},'Объём: '+Math.round(volume).toLocaleString('ru-RU')+' кг·повт.'),h('button',{type:'button',class:'b',onclick:()=>ask(sessText(log))},'Тренеру'),h('button',{type:'button',class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(x=>x!==log);save();render()}}},'Удалить')),...exercises));
   });
  }
- return h('section',{class:'history-calendar-card'},h('div',{class:'history-calendar-heading'},h('div',{},h('h3',{},'История тренировок'),h('p',{class:'mut'},'Выбери дату, чтобы посмотреть все упражнения и подходы')),h('span',{class:'history-calendar-legend'},h('i',{},''),'Тренировка')),nav,h('div',{class:'history-calendar-grid'},...weekdays.map(x=>h('span',{class:'history-calendar-weekday'},x)),...cells),h('section',{class:'history-day-details'},...details));
+ return h('section',{class:'history-calendar-card'},h('div',{class:'history-calendar-heading'},h('div',{},h('h3',{},'История тренировок'),h('p',{class:'mut'},'Выбери дату, чтобы посмотреть все упражнения и подходы')),h('span',{class:'history-calendar-legend'},h('i',{},''),'Тренировка')),nav,h('div',{class:'history-calendar-grid'},...weekdays.map(x=>h('span',{class:'history-calendar-weekday'},x)),...cells),historySelected?h('button',{type:'button',class:'history-modal-backdrop','aria-label':'Закрыть карточку тренировки',onclick:()=>{historySelected='';render()}}):null,h('section',{class:'history-day-details'+(historySelected?' is-open':'')},...details));
 }
 
 let progressRange='week';
