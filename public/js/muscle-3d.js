@@ -18,7 +18,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
  window.addEventListener('muscle3d:reset',reset);
  try{
   const [THREE,{GLTFLoader}]=await threeModules();if(disposed)return;
-  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,0,5.8);
+  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,0,8.2);
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
   renderer.domElement.className='muscle-3d-canvas';renderer.domElement.setAttribute('aria-label','3D-модель мышц. Перетаскивайте для вращения.');
@@ -43,7 +43,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    obj.material.side=THREE.DoubleSide;
   });
   const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
-  body.position.sub(center);body.scale.setScalar(3.5/Math.max(size.x,size.y,size.z));scene.add(body);
+  body.position.sub(center);body.scale.setScalar(2.8/Math.max(size.x,size.y,size.z));scene.add(body);
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   renderer.domElement.addEventListener('pointerdown',event=>{dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false;renderer.domElement.setPointerCapture?.(event.pointerId)});
   renderer.domElement.addEventListener('pointermove',event=>{if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
@@ -54,7 +54,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(body,true).find(x=>x.object.userData.tjMuscle);
    if(hit){const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
   });
-  const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(280,Math.min(520,host.clientWidth*.88));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(360,Math.min(620,w*.78));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   observer=new ResizeObserver(resize);observer.observe(host);resize();
   removalObserver=new MutationObserver(()=>{if(!host.isConnected)cleanup()});removalObserver.observe(document.body,{childList:true,subtree:true});
   const animate=()=>{if(disposed)return;raf=requestAnimationFrame(animate);renderer.render(scene,camera)};animate();
