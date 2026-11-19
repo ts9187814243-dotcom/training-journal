@@ -577,3 +577,15 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .goal-chip{min-height:40px;padding:9px 13px;border:1px solid rgba(100,225,218,.22);border-radius:13px;background:rgba(8,31,35,.65);color:var(--mut);font:600 13px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;transition:background .16s,border-color .16s,color .16s}
 .goal-chip:hover{border-color:rgba(100,225,218,.48);color:var(--ink)}
 .goal-chip.is-selected{border-color:var(--acc);background:rgba(65,205,195,.16);color:var(--acc);box-shadow:inset 0 0 0 1px rgba(65,205,195,.12)}
+
+
+/* Progress charts: clean glass-card visualization */
+.chart{width:100%;height:auto;min-height:190px;display:block;overflow:visible;margin:6px 0 0}
+.chart-gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:3 5;opacity:.9}
+.chart-axis-label,.chart-date-label{fill:var(--mut);font-family:Inter,system-ui,sans-serif;font-size:10px;font-weight:600}
+.chart-date-label{font-size:10px}
+.chart-current-text{fill:var(--onacc);font-family:Inter,system-ui,sans-serif;font-size:10px;font-weight:800}
+.chart-current-value rect{filter:drop-shadow(0 3px 6px rgba(0,0,0,.18))}
+#v .card:has(>.chart){padding:18px 16px 14px;overflow:hidden}
+#v .card:has(>.chart)>p{font-size:13px;font-weight:650;letter-spacing:.01em}
+@media(max-width:420px){.chart{min-height:170px}.chart-axis-label,.chart-date-label{font-size:9px}#v .card:has(>.chart){padding:14px 10px 12px}}
