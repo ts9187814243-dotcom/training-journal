@@ -255,13 +255,14 @@ function log(){
  return h('div',{},h('h2',{},sess.name),
   h('div',{class:'row'},h('input',{type:'date',value:sess.date,'aria-label':'Дата',onchange:e=>sess.date=e.target.value||today()})),
   S.settings.rest>0?h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest))},tr('Отдых')+' '+(S.settings.rest>=60?(S.settings.rest/60)+' '+tr('мин'):S.settings.rest+' '+tr('с')))):null,
-  sess.entries.map(en=>h('div',{class:'card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
+  sess.entries.map(en=>h('div',{class:'card workout-exercise-card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
+   h('div',{class:'workout-previous'},h('span',{},'Прошлый результат'),h('strong',{},(()=>{const prev=lastSets(en.ex);return prev.some(s=>s.w||s.r)?prev.map(s=>(s.w||'—')+' кг × '+(s.r||'—')).join(' · '):'Пока нет записей'} )())),
    h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, '+(S.settings.units==='lb'?'lb':'кг')),h('span',{class:'hd'},'Повторы'),h('span'),
     en.sets.map((s,i)=>[h('span',{class:'hd'},i+1),
      h('input',{type:'text',inputmode:'decimal',value:s.w?(S.settings.units==='lb'?(Number(s.w)*2.2046226218).toFixed(1):s.w):'','aria-label':'Вес, подход '+(i+1),oninput:e=>s.w=e.target.value,style:'text-align:center'}),
      h('input',{type:'text',inputmode:'numeric',value:s.r,'aria-label':'Повторы, подход '+(i+1),oninput:e=>s.r=e.target.value,style:'text-align:center'}),
      h('button',{class:'x','aria-label':'Удалить подход',onclick:()=>{en.sets.splice(i,1);render()}},'✕')])),
-   h('button',{class:'b',onclick:()=>{const l=en.sets[en.sets.length-1]||{w:'',r:''};en.sets.push({w:l.w,r:l.r});render()}},'Добавить подход'))),
+   h('button',{class:'b workout-add-set',onclick:()=>{const l=en.sets[en.sets.length-1]||{w:'',r:''};en.sets.push({w:l.w,r:l.r});render();if(Number(S.settings.rest)>0)startRest(Number(S.settings.rest))}},'Добавить подход'))),
   h('div',{class:'row'},h('div',{class:'grow'},ni),h('button',{class:'b',onclick:addEx},'Добавить')),
   exPicker('log',n=>{if(!sess.entries.some(e=>e.ex===n))sess.entries.push({ex:n,sets:lastSets(n)});render()}),
   err&&h('p',{class:'err'},err),
@@ -288,6 +289,7 @@ function chart(pts,unit){
 let rest={end:0,iv:null};
 function stopRest(){clearInterval(rest.iv);document.getElementById('rest').hidden=true}
 document.getElementById('rs').addEventListener('click',stopRest);
+document.getElementById('rplus').addEventListener('click',()=>{if(rest.end>Date.now()){rest.end+=15000;const t=document.getElementById('rt');const l=Math.ceil((rest.end-Date.now())/1000);t.textContent=tr('Отдых')+' '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')}});
 function startRest(sec){clearInterval(rest.iv);rest.end=Date.now()+sec*1000;const t=document.getElementById('rt');document.getElementById('rest').hidden=false;
  const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){t.textContent=tr('Отдых закончен');clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}if(S.settings.notifications&&'Notification'in window&&Notification.permission==='granted')new Notification('Журнал тренировок',{body:'Время отдыха закончилось. Следующий подход!'});return}t.textContent=tr('Отдых')+' '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')};
  tick();rest.iv=setInterval(tick,500)}

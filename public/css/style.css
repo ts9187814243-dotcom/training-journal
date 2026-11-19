@@ -479,3 +479,15 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .workout-name-field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(73,211,202,.12)}
 .workout-name-field input::placeholder{color:var(--mut)}
 @media(max-width:520px){.workout-name-field input{font-size:16px;padding:13px}}
+
+/* Focused workout mode: previous performance and accessible rest controls */
+.workout-exercise-card{scroll-margin-top:18px}
+.workout-previous{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin:10px 0 12px;padding:10px 12px;border:1px solid var(--glass-border);border-radius:12px;background:rgba(73,211,202,.055)}
+.workout-previous span{font-size:11px;color:var(--mut)}
+.workout-previous strong{font-size:12px;font-weight:650;color:var(--acc);text-align:right;overflow-wrap:anywhere}
+.workout-add-set{margin-top:8px}
+#rest{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--glass-border);border-radius:16px;background:var(--glass-strong);box-shadow:var(--glass-shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#rest[hidden]{display:none}
+#rt{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums;color:var(--acc)}
+#rest button{min-height:34px;padding:6px 12px;border:1px solid var(--softb);border-radius:999px;background:var(--soft);color:var(--ink);font:600 12px Inter,system-ui,sans-serif}
+@media(max-width:520px){.workout-previous{align-items:flex-start;flex-direction:column}.workout-previous strong{text-align:left}#rest{gap:7px;padding:9px}#rest button{min-height:38px;padding:8px 12px}}
