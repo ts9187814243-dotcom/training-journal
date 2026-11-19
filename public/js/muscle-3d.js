@@ -11,11 +11,11 @@ async function threeModules(){
  return THREE_PROMISE;
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
- let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false;
+ let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false;\n const pointers=new Map();let pinchStart=0,pinchDistance=0;const minCameraZ=3.2,maxCameraZ=18;\n const zoomBy=delta=>{if(!camera)return;camera.position.z=THREE.MathUtils.clamp(camera.position.z+delta,minCameraZ,maxCameraZ)};
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const reset=()=>{if(body)body.rotation.y=0};
- const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset)};
- window.addEventListener('muscle3d:reset',reset);
+ const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset);window.removeEventListener('muscle3d:zoom',onZoom)};
+ window.addEventListener('muscle3d:reset',reset);\n const onZoom=event=>zoomBy(Number(event.detail?.delta)||0);window.addEventListener('muscle3d:zoom',onZoom);
  try{
   const [THREE,{GLTFLoader}]=await threeModules();if(disposed)return;
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,0,8.5);
@@ -43,9 +43,12 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    obj.material.side=THREE.DoubleSide;
   });
   const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
-  body.position.sub(center);body.scale.setScalar(2.35/Math.max(size.x,size.y,size.z));scene.add(body);\n  body.updateMatrixWorld(true);\n  const fittedBox=new THREE.Box3().setFromObject(body),sphere=fittedBox.getBoundingSphere(new THREE.Sphere());\n  camera.position.set(0,0,Math.max(7.5,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.18));camera.lookAt(0,0,0);
+  body.position.sub(center);body.scale.setScalar(2.35/Math.max(size.x,size.y,size.z));scene.add(body);
+  body.updateMatrixWorld(true);
+  const fittedBox=new THREE.Box3().setFromObject(body),sphere=fittedBox.getBoundingSphere(new THREE.Sphere());
+  camera.position.set(0,0,Math.max(7.5,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.18));camera.lookAt(0,0,0);
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-  renderer.domElement.addEventListener('pointerdown',event=>{dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false;renderer.domElement.setPointerCapture?.(event.pointerId)});
+  renderer.domElement.addEventListener('pointerdown',event=>{pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===1){dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false}else if(pointers.size===2){dragging=false;const pts=[...pointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchStart=pinchDistance}renderer.domElement.setPointerCapture?.(event.pointerId)});
   renderer.domElement.addEventListener('pointermove',event=>{if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
   const endDrag=()=>{dragging=false};renderer.domElement.addEventListener('pointerup',endDrag);renderer.domElement.addEventListener('pointercancel',endDrag);
   renderer.domElement.addEventListener('click',event=>{
