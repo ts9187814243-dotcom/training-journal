@@ -562,3 +562,18 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .calendar-day.selected{background:var(--acc);border-color:var(--acc);color:#062326;font-weight:800;box-shadow:0 4px 14px rgba(65,205,195,.22)}
 .calendar-today{width:100%;margin-top:13px;padding:10px;border:1px solid rgba(100,225,218,.2);border-radius:12px;background:rgba(64,180,178,.1);color:var(--acc);font:700 13px Inter,system-ui,sans-serif;cursor:pointer}
 @media(max-width:420px){.workout-calendar{padding:12px;border-radius:18px}.workout-calendar-grid{gap:3px}.calendar-day{height:38px;border-radius:10px}}
+
+
+/* Manual date entry in the glass calendar */
+.calendar-manual{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(100,225,218,.14)}
+.calendar-manual label{display:flex;flex-direction:column;gap:6px;color:var(--mut);font-size:11px;font-weight:650}
+.calendar-manual-input{width:100%;min-width:0;min-height:40px;box-sizing:border-box;padding:0 10px;border:1px solid rgba(100,225,218,.22);border-radius:11px;background:rgba(3,17,20,.75);color:var(--ink);font:600 13px Inter,system-ui,sans-serif}
+.calendar-manual-input:focus{outline:2px solid rgba(94,207,212,.42);outline-offset:1px;border-color:var(--acc)}
+.calendar-manual-apply{min-height:40px;padding:0 12px;border:1px solid rgba(100,225,218,.3);border-radius:11px;background:rgba(64,180,178,.16);color:var(--acc);font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.goal-multi{display:flex;flex-direction:column;gap:9px;margin:12px 0}
+.goal-multi>span{font-size:14px;font-weight:650;color:var(--ink)}
+.goal-multi>.mut{margin:0;font-size:12px}
+.goal-multi-options{display:flex;flex-wrap:wrap;gap:9px}
+.goal-chip{min-height:40px;padding:9px 13px;border:1px solid rgba(100,225,218,.22);border-radius:13px;background:rgba(8,31,35,.65);color:var(--mut);font:600 13px Inter,system-ui,sans-serif;text-align:left;cursor:pointer;transition:background .16s,border-color .16s,color .16s}
+.goal-chip:hover{border-color:rgba(100,225,218,.48);color:var(--ink)}
+.goal-chip.is-selected{border-color:var(--acc);background:rgba(65,205,195,.16);color:var(--acc);box-shadow:inset 0 0 0 1px rgba(65,205,195,.12)}
