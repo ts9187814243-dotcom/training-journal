@@ -1,0 +1,61 @@
+// Interactive 3D muscle atlas for Training Journal.
+// Model: Free Muscle / Z-Anatomy, CC BY-SA 4.0. Keep attribution visible.
+const MODEL_URL='https://cdn.jsdelivr.net/gh/tiralonghipol/free-muscles@main/public/anatomy.glb';
+const DRACO_URL='https://cdn.jsdelivr.net/gh/tiralonghipol/free-muscles@main/public/draco/';
+let THREE_PROMISE;
+async function threeModules(){
+ if(!THREE_PROMISE)THREE_PROMISE=Promise.all([
+  import('https://esm.sh/three@0.170.0'),
+  import('https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js?external=three')
+ ]);
+ return THREE_PROMISE;
+}
+export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
+ let renderer,observer,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0;
+ const setStatus=text=>{if(!disposed)onStatus(text)};
+ const reset=()=>{if(body)body.rotation.y=0};
+ window.addEventListener('muscle3d:reset',reset);
+ try{
+  const [THREE,{GLTFLoader}]=await threeModules();if(disposed)return;
+  scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,0,5.8);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+  renderer.domElement.className='muscle-3d-canvas';renderer.domElement.setAttribute('aria-label','3D-модель мышц. Перетаскивайте для вращения.');
+  host.insertBefore(renderer.domElement,host.firstChild);
+  scene.add(new THREE.HemisphereLight(0xe8f5f5,0x39464a,2));
+  const key=new THREE.DirectionalLight(0xffffff,3.1);key.position.set(3,5,6);scene.add(key);
+  const fill=new THREE.DirectionalLight(0x8ce4e2,1.25);fill.position.set(-4,1,-4);scene.add(fill);
+  const loader=new GLTFLoader();
+  const {DRACOLoader}=await import('https://esm.sh/three@0.170.0/examples/jsm/loaders/DRACOLoader.js?external=three');
+  const draco=new DRACOLoader();draco.setDecoderPath(DRACO_URL);loader.setDRACOLoader(draco);
+  setStatus('Загружаем анатомическую модель…');
+  const gltf=await loader.loadAsync(MODEL_URL);draco.dispose();if(disposed)return;
+  body=gltf.scene;
+  body.traverse(obj=>{
+   if(!obj.isMesh)return;
+   const meta=obj.userData||{},isMuscle=meta.kind==='muscle';obj.userData.tjMuscle=isMuscle;
+   if(isMuscle){
+    const group=String(meta.group||'').toLowerCase(),count=Number(loads[group])||0,intensity=Math.min(1,count/18);
+    const base=new THREE.Color(0x9da7aa),teal=new THREE.Color(0x16b9b3),color=base.clone().lerp(teal,.10+intensity*.72);
+    obj.material=new THREE.MeshStandardMaterial({color,roughness:.52,metalness:.32,emissive:teal,emissiveIntensity:.025+intensity*.16});
+   }else obj.material=new THREE.MeshStandardMaterial({color:0x667276,roughness:.82,metalness:.12,transparent:true,opacity:.18});
+   obj.material.side=THREE.DoubleSide;
+  });
+  const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+  body.position.sub(center);body.scale.setScalar(3.5/Math.max(size.x,size.y,size.z));scene.add(body);
+  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+  renderer.domElement.addEventListener('pointerdown',event=>{dragging=true;lastX=event.clientX;renderer.domElement.setPointerCapture?.(event.pointerId)});
+  renderer.domElement.addEventListener('pointermove',event=>{if(dragging){body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
+  const endDrag=()=>{dragging=false};renderer.domElement.addEventListener('pointerup',endDrag);renderer.domElement.addEventListener('pointercancel',endDrag);
+  renderer.domElement.addEventListener('click',event=>{
+   const rect=renderer.domElement.getBoundingClientRect();pointer.x=((event.clientX-rect.left)/rect.width)*2-1;pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+   raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(body,true).find(x=>x.object.userData.tjMuscle);
+   if(hit){const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
+  });
+  const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(280,Math.min(520,host.clientWidth*.88));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  observer=new ResizeObserver(resize);observer.observe(host);resize();
+  const animate=()=>{if(disposed)return;raf=requestAnimationFrame(animate);renderer.render(scene,camera)};animate();
+  setStatus('Модель готова · нажми на мышцу или вращай пальцем');
+ }catch(error){setStatus('Ошибка загрузки 3D-модели');console.error('Muscle 3D:',error)}
+ return ()=>{disposed=true;cancelAnimationFrame(raf);observer?.disconnect();renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset)};
+}
