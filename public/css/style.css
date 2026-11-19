@@ -521,3 +521,18 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 #rest .rest-actions #rs{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#f0ffff}
 @media(max-width:520px){#rest{gap:20px;padding:20px}.rest-dialog{gap:0!important}#rest #rt{width:148px;height:148px;font-size:36px}#rest .rest-actions{gap:18px}#rest .rest-actions button{width:60px;height:60px;min-width:60px;min-height:60px}}
 @media(max-height:420px){#rest{gap:12px}#rest #rt{width:120px;height:120px;font-size:32px}#rest .rest-actions button{width:52px;height:52px;min-width:52px;min-height:52px}}
+
+
+/* Rest overlay fills the complete viewport, including safe areas */
+#rest{inset:0!important;left:0!important;right:0!important;top:0!important;bottom:0!important;width:100vw!important;min-width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;box-sizing:border-box!important;padding:env(safe-area-inset-top,0px) max(20px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(20px,env(safe-area-inset-left,0px))!important;background:rgba(2,12,15,.94)!important;backdrop-filter:blur(22px)!important;-webkit-backdrop-filter:blur(22px)!important}
+#rest #rt{width:clamp(240px,34vw,290px)!important;height:clamp(240px,34vw,290px)!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;border-width:3px;background:rgba(13,64,68,.96)!important;box-shadow:0 18px 65px rgba(0,0,0,.52),inset 0 0 34px rgba(73,211,202,.18)!important}
+#rest-label{display:block;font-size:clamp(25px,4vw,34px);font-weight:800;line-height:1.05}
+#rest-time{display:block;font-size:clamp(48px,7vw,64px);font-weight:850;line-height:1.05;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+#rest .rest-actions{gap:24px!important}
+#rest .rest-actions button{width:clamp(82px,12vw,96px)!important;height:clamp(82px,12vw,96px)!important;min-width:clamp(82px,12vw,96px)!important;min-height:clamp(82px,12vw,96px)!important;font-size:clamp(22px,3vw,26px)!important;border-width:2px!important}
+@media(max-width:520px){#rest{gap:28px!important;padding:env(safe-area-inset-top,0px) 18px env(safe-area-inset-bottom,0px)!important}#rest #rt{width:min(76vw,290px)!important;height:min(76vw,290px)!important;max-width:290px;max-height:290px}#rest-label{font-size:30px}#rest-time{font-size:58px}#rest .rest-actions{gap:22px!important}#rest .rest-actions button{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important}}
+@media(max-height:560px){#rest{gap:14px!important}#rest #rt{width:min(48vh,230px)!important;height:min(48vh,230px)!important}#rest .rest-actions button{width:68px!important;height:68px!important;min-width:68px!important;min-height:68px!important}}
+/* Native date field styling; popup itself is browser-controlled */
+#v input[type="date"]{color-scheme:dark;width:100%;min-height:50px;padding:0 14px;border:1px solid rgba(91,205,202,.28);border-radius:16px;background:rgba(8,31,35,.78);color:var(--ink);font:600 15px Inter,system-ui,sans-serif;accent-color:var(--acc)}
+#v input[type="date"]:focus{outline:2px solid rgba(94,207,212,.55);outline-offset:2px;border-color:var(--acc)}
+#v input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert(.78) sepia(.3) saturate(1.2);opacity:.9;width:20px;height:20px}
