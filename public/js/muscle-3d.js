@@ -11,7 +11,7 @@ async function threeModules(){
  return THREE_PROMISE;
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
- let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false;\n const pointers=new Map();let pinchStart=0,pinchDistance=0;const minCameraZ=3.2,maxCameraZ=18;\n const zoomBy=delta=>{if(!camera)return;camera.position.z=THREE.MathUtils.clamp(camera.position.z+delta,minCameraZ,maxCameraZ)};
+ let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false;\n const pointers=new Map();let pinchStart=0,pinchDistance=0;const minCameraZ=3.2,maxCameraZ=18;\n const zoomBy=delta=>{if(!camera)return;camera.position.z=Math.max(minCameraZ,Math.min(maxCameraZ,camera.position.z+delta))};
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const reset=()=>{if(body)body.rotation.y=0};
  const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset);window.removeEventListener('muscle3d:zoom',onZoom)};
