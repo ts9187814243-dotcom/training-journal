@@ -11,7 +11,7 @@ async function threeModules(){
  return THREE_PROMISE;
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
- let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0;
+ let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false;
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const reset=()=>{if(body)body.rotation.y=0};
  const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset)};
@@ -45,10 +45,11 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
   const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
   body.position.sub(center);body.scale.setScalar(3.5/Math.max(size.x,size.y,size.z));scene.add(body);
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-  renderer.domElement.addEventListener('pointerdown',event=>{dragging=true;lastX=event.clientX;renderer.domElement.setPointerCapture?.(event.pointerId)});
-  renderer.domElement.addEventListener('pointermove',event=>{if(dragging){body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
+  renderer.domElement.addEventListener('pointerdown',event=>{dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false;renderer.domElement.setPointerCapture?.(event.pointerId)});
+  renderer.domElement.addEventListener('pointermove',event=>{if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
   const endDrag=()=>{dragging=false};renderer.domElement.addEventListener('pointerup',endDrag);renderer.domElement.addEventListener('pointercancel',endDrag);
   renderer.domElement.addEventListener('click',event=>{
+   if(dragMoved){dragMoved=false;return}
    const rect=renderer.domElement.getBoundingClientRect();pointer.x=((event.clientX-rect.left)/rect.width)*2-1;pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
    raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(body,true).find(x=>x.object.userData.tjMuscle);
    if(hit){const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
