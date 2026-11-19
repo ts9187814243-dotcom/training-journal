@@ -687,3 +687,14 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .anatomy-map-3d .anatomy-region:hover,.anatomy-map-3d .anatomy-region:focus,.anatomy-map-3d .anatomy-region.active{stroke:#c5fff4;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(62,244,221,.72))}
 .anatomy-map-3d .anatomy-contours{pointer-events:none;fill:none;stroke:rgba(38,71,77,.48);stroke-width:.75;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:420px){.anatomy-map-3d .anatomy-figures{gap:16px}.anatomy-map-3d .anatomy-figure svg{width:clamp(116px,39vw,145px);max-height:340px}}
+
+/* Real anatomical muscle chart (front + back) */
+.anatomy-map-3d .anatomy-real-image-wrap{width:100%;margin:8px auto 0;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:16px;background:rgba(225,239,236,.96)}
+.anatomy-map-3d .anatomy-real-image{display:block;width:100%;max-width:680px;height:auto;object-fit:contain}
+.anatomy-attribution{display:block;margin:7px 0 0;color:var(--mut);font-size:9px;line-height:1.4;text-align:center}
+@media(max-width:520px){.anatomy-map-3d .anatomy-real-image-wrap{margin-top:4px;border-radius:12px}.anatomy-map-3d .anatomy-real-image{width:100%}.anatomy-attribution{font-size:8px}}
+/* Keep the close control visible while workout-day details scroll */
+@media(max-width:520px){
+ .history-day-details.is-open .history-day-title{position:sticky;top:-18px;z-index:4;margin:-18px -14px 12px;padding:18px 14px 10px;background:rgba(7,25,29,.98);border-bottom:1px solid rgba(100,225,218,.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+ .history-day-details.is-open .history-modal-close{position:sticky;top:0;z-index:5;box-shadow:0 3px 12px rgba(0,0,0,.22)}
+}
