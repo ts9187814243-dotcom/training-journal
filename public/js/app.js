@@ -245,6 +245,24 @@ function plans(){
 }
 function startSess(w){sess={wid:w.id,name:w.name,date:today(),entries:w.ex.map(ex=>({ex,sets:w.prescriptions&&Array.isArray(w.prescriptions[ex])&&w.prescriptions[ex].length?w.prescriptions[ex].map(x=>({w:x.w||'',r:x.r||''})):lastSets(ex)}))};go('log')}
 
+function workoutDatePicker(){
+ let selected=sess.date||today();let month=new Date(selected+'T12:00');month.setDate(1);
+ const wrap=h('div',{class:'workout-date-picker'});
+ const panel=h('div',{class:'workout-calendar',role:'dialog','aria-label':'Выбор даты',hidden:true});
+ const trigger=h('button',{type:'button',class:'workout-date-trigger','aria-haspopup':'dialog','aria-expanded':'false'});
+ const locale=()=>({ru:'ru-RU',en:'en-US',de:'de-DE',zh:'zh-CN',ja:'ja-JP',fr:'fr-FR',hi:'hi-IN',es:'es-ES'})[S.settings.language]||'ru-RU';
+ const update=()=>trigger.replaceChildren(h('span',{class:'date-icon'},'▦'),h('span',{},new Date(selected+'T12:00').toLocaleDateString(locale(),{day:'numeric',month:'long',year:'numeric'})),h('span',{class:'date-chevron'},'⌄'));
+ const draw=()=>{
+  const y=month.getFullYear(),m=month.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  const head=h('div',{class:'workout-calendar-head'},h('button',{type:'button',class:'calendar-nav','aria-label':'Предыдущий месяц',onclick:()=>{month.setMonth(month.getMonth()-1);draw()}},'‹'),h('strong',{},month.toLocaleDateString(locale(),{month:'long',year:'numeric'})),h('button',{type:'button',class:'calendar-nav','aria-label':'Следующий месяц',onclick:()=>{month.setMonth(month.getMonth()+1);draw()}},'›'));
+  const week=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x=>h('span',{class:'calendar-weekday'},x)),cells=[];
+  for(let i=0;i<first;i++)cells.push(h('span',{class:'calendar-empty'}));
+  for(let d=1;d<=days;d++){const value=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');cells.push(h('button',{type:'button',class:'calendar-day'+(value===selected?' selected':'')+(value===today()?' today':''),'aria-pressed':String(value===selected),onclick:()=>{selected=value;sess.date=value;update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},String(d)))}
+  panel.replaceChildren(head,h('div',{class:'workout-calendar-grid'},...week,...cells),h('button',{type:'button',class:'calendar-today',onclick:()=>{selected=today();sess.date=selected;month=new Date(selected+'T12:00');month.setDate(1);update();panel.hidden=true;trigger.setAttribute('aria-expanded','false');draw()}},'Сегодня'));
+ };
+ trigger.addEventListener('click',()=>{panel.hidden=!panel.hidden;trigger.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden)draw()});
+ update();draw();wrap.append(trigger,panel);return wrap;
+}
 function log(){
  if(!sess)return h('div',{},h('h2',{},'Записать тренировку'),
   S.workouts.length?[h('p',{class:'mut'},'Выберите тренировку. Подходы подставятся из прошлого раза.'),S.workouts.map(w=>h('button',{class:'b',style:'display:block;width:100%;text-align:left;margin:8px 0',onclick:()=>startSess(w)},w.name)),
@@ -254,7 +272,7 @@ function log(){
  const addEx=()=>{const v=ni.value.trim();if(v&&!sess.entries.some(e=>e.ex===v)){sess.entries.push({ex:v,sets:lastSets(v)});render()}};
  ni.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEx()}});
  return h('div',{},h('h2',{},sess.name),
-  h('div',{class:'row'},h('input',{type:'date',value:sess.date,'aria-label':'Дата',onchange:e=>sess.date=e.target.value||today()})),
+  workoutDatePicker(),
   S.settings.rest>0?h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest))},tr('Отдых')+' '+(S.settings.rest>=60?(S.settings.rest/60)+' '+tr('мин'):S.settings.rest+' '+tr('с')))):null,
   sess.entries.map(en=>h('div',{class:'card workout-exercise-card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
    h('div',{class:'workout-previous'},h('span',{},'Прошлый результат'),h('strong',{},(()=>{const prev=lastSets(en.ex);return prev.some(s=>s.w||s.r)?prev.map(s=>(s.w?(S.settings.units==='lb'?(Number(s.w)*2.2046226218).toFixed(1):s.w):'—')+' '+(S.settings.units==='lb'?'lb':'кг')+' × '+(s.r||'—')).join(' · '):'Пока нет записей'} )())),
