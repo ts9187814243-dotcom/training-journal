@@ -459,3 +459,15 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .workout-feeling>span{font-size:25px;color:var(--acc)}.workout-feeling strong{font-size:14px}.workout-feeling small{font-size:11px;line-height:1.3;color:var(--mut)}
 .workout-feeling:active{transform:scale(.98)}.workout-feeling.easy{border-color:rgba(72,190,140,.3)}.workout-feeling.hard{border-color:rgba(225,166,86,.35)}
 @media(max-width:520px){.confirm-overlay{padding:14px}.coach-confirm-dialog,.workout-feedback-dialog{padding:20px}.coach-confirm-dialog h2,.workout-feedback-dialog h2{font-size:20px}.workout-feeling-choices{grid-template-columns:1fr;gap:8px}.workout-feeling{display:grid;grid-template-columns:32px 1fr;grid-template-rows:auto auto;text-align:left;justify-items:start;padding:11px 13px}.workout-feeling>span{grid-row:1/3;align-self:center}.workout-feeling small{grid-column:2}}
+
+/* Per-exercise effort feedback */
+.workout-exercise-feedback{width:min(100%,680px);max-height:min(88dvh,900px);overflow:auto}
+.workout-exercise-feedback-list{display:grid;gap:10px;margin:16px 0}
+.workout-exercise-feedback-card{display:grid;gap:9px;padding:13px;border:1px solid var(--line);border-radius:15px;background:rgba(73,211,202,.045)}
+.workout-exercise-feedback-name{font-size:14px;line-height:1.35}
+.workout-exercise-feedback-result{font-size:12px;color:var(--mut);line-height:1.4}
+.workout-exercise-feedback-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.workout-exercise-feedback-options .workout-feeling{padding:9px 8px;font-size:13px}
+.workout-exercise-feedback-options .workout-feeling.selected{border-color:var(--acc);background:rgba(73,211,202,.17);box-shadow:inset 0 0 0 1px var(--acc);color:var(--ink)}
+.workout-feedback-actions{position:sticky;bottom:-20px;padding:12px 0 0;background:linear-gradient(180deg,transparent,var(--surf) 25%)}
+@media(max-width:520px){.workout-exercise-feedback{max-height:90dvh}.workout-exercise-feedback-card{padding:11px}.workout-exercise-feedback-options{gap:6px}.workout-exercise-feedback-options .workout-feeling{display:flex;padding:10px 4px;font-size:12px;min-height:42px}.workout-feedback-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.workout-feedback-actions .b{padding-inline:8px;font-size:12px}}

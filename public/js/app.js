@@ -344,7 +344,7 @@ function ctx(){
  L.push('Вес тела, кг: '+(S.body.slice(-10).map(b=>b.w+' ('+b.date+')').join(', ')||'нет записей'));
  L.push('Планы: '+(S.workouts.map(w=>w.name+' ['+w.ex.join(', ')+']').join('; ')||'нет'));
  L.push('Последние тренировки (вес×повторы):');
- S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(sx).join(' | ')+(l.feeling?' | Самооценка нагрузки: '+({easy:'легко',normal:'нормально',hard:'тяжело'}[l.feeling]||l.feeling):'')));
+ S.logs.slice(-15).forEach(l=>L.push(l.date+' '+l.name+': '+l.entries.map(e=>sx(e)+(e.feeling?' ['+({easy:'легко',normal:'нормально',hard:'тяжело'}[e.feeling]||e.feeling)+']':'')).join(' | ')));
  if(!S.logs.length)L.push('нет записей');
  return L.join('\n');
 }
@@ -459,20 +459,34 @@ let settingsOpen=false;
 
 function showWorkoutFeedbackDialog(log){
  const overlay=h('div',{class:'confirm-overlay workout-feedback-overlay',role:'presentation'});
- const dialog=h('section',{class:'confirm-dialog workout-feedback-dialog',role:'dialog','aria-modal':'true','aria-labelledby':'workout-feedback-title','aria-describedby':'workout-feedback-description'});
+ const dialog=h('section',{class:'confirm-dialog workout-feedback-dialog workout-exercise-feedback',role:'dialog','aria-modal':'true','aria-labelledby':'workout-feedback-title','aria-describedby':'workout-feedback-description'});
  const icon=h('div',{class:'coach-dialog-icon'},'♥');
- const title=h('h2',{id:'workout-feedback-title'},'Как прошла тренировка?');
- const desc=h('p',{id:'workout-feedback-description'},'Оцени общую нагрузку. Тренер учтёт это при подборе весов и объёма в следующий раз.');
- const choices=h('div',{class:'workout-feeling-choices'},
-  h('button',{class:'workout-feeling easy',type:'button',onclick:()=>finish('easy')},h('span',{},'☀'),h('strong',{},'Легко'),h('small',{},'Можно немного прибавить')),
-  h('button',{class:'workout-feeling normal',type:'button',onclick:()=>finish('normal')},h('span',{},'◉'),h('strong',{},'Нормально'),h('small',{},'Нагрузка подходящая')),
-  h('button',{class:'workout-feeling hard',type:'button',onclick:()=>finish('hard')},h('span',{},'〰'),h('strong',{},'Тяжело'),h('small',{},'Нужно учесть восстановление')));
- const skip=h('button',{class:'b',type:'button',onclick:()=>finish(null)},'Пропустить');
+ const title=h('h2',{id:'workout-feedback-title'},'Оцени упражнения');
+ const desc=h('p',{id:'workout-feedback-description'},'Отметь, насколько тяжело далось каждое упражнение. Это поможет тренеру точнее подобрать нагрузку в следующий раз.');
+ const list=h('div',{class:'workout-exercise-feedback-list'});
+ const labels=[['easy','Легко'],['normal','Нормально'],['hard','Тяжело']];
+ log.entries.forEach(entry=>{
+  const card=h('article',{class:'workout-exercise-feedback-card'});
+  const name=h('strong',{class:'workout-exercise-feedback-name'},entry.ex);
+  const result=h('span',{class:'workout-exercise-feedback-result'},entry.sets.map(s=>s.w+' кг × '+s.r).join(' · '));
+  const choices=h('div',{class:'workout-exercise-feedback-options'});
+  const buttons={};
+  labels.forEach(([value,label])=>{
+   const btn=h('button',{class:'workout-feeling '+value+(entry.feeling===value?' selected':''),type:'button','aria-pressed':entry.feeling===value?'true':'false',onclick:()=>{
+    entry.feeling=value;
+    Object.entries(buttons).forEach(([key,node])=>{node.classList.toggle('selected',key===value);node.setAttribute('aria-pressed',key===value?'true':'false')});
+   }},label);
+   buttons[value]=btn;choices.append(btn);
+  });
+  card.append(name,result,choices);list.append(card);
+ });
+ const skip=h('button',{class:'b',type:'button',onclick:()=>finish()},'Пропустить оценки');
+ const saveBtn=h('button',{class:'b p',type:'button',onclick:()=>finish()},'Сохранить тренировку');
  function close(){overlay.remove();document.removeEventListener('keydown',onKey)}
- function finish(feeling){if(feeling)log.feeling=feeling;S.logs.push(log);S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=log.entries[0].ex;sess=null;err='';close();go('progress')}
- const onKey=e=>{if(e.key==='Escape')finish(null)};
- dialog.append(icon,title,desc,choices,h('div',{class:'confirm-actions'},skip));overlay.append(dialog);
- overlay.addEventListener('click',e=>{if(e.target===overlay)finish(null)});
+ function finish(){S.logs.push(log);S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=log.entries[0].ex;sess=null;err='';close();go('progress')}
+ const onKey=e=>{if(e.key==='Escape')finish()};
+ dialog.append(icon,title,desc,list,h('div',{class:'confirm-actions workout-feedback-actions'},skip,saveBtn));overlay.append(dialog);
+ overlay.addEventListener('click',e=>{if(e.target===overlay)finish()});
  document.addEventListener('keydown',onKey);document.body.append(overlay);
 }
 function showCoachPlanConfirm(exercises,name,prescriptions){
