@@ -303,21 +303,21 @@ function chart(pts,unit){
  if(!values.length)return h('p',{class:'mut'},'Недостаточно данных для графика.');
  const mn=Math.min(...values),mx=Math.max(...values),pad=(mx-mn)||Math.max(mx*.08,1),lo=Math.max(0,mn-pad*.18),hi=mx+pad*.18;
  const X=i=>pts.length===1?left+plotW/2:left+i*plotW/(pts.length-1),Y=v=>top+(hi-v)/(hi-lo)*plotH;
- const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+ const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),fillId='chart-fill-'+uid(),lineId='chart-line-'+uid();
  const el=(tag,attrs,parent=svg)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,String(v)));parent.appendChild(n);return n};
  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('class','chart');svg.setAttribute('role','img');svg.setAttribute('aria-label','График: '+unit);
  const defs=el('defs',{});
- const grad=el('linearGradient',{id:'chartFillGradient',x1:'0',x2:'0',y1:'0',y2:'1'},defs);
+ const grad=el('linearGradient',{id:fillId,x1:'0',x2:'0',y1:'0',y2:'1'},defs);
  el('stop',{offset:'0%','stop-color':'var(--cy)','stop-opacity':'.28'},grad);el('stop',{offset:'100%','stop-color':'var(--cy)','stop-opacity':'0'},grad);
- const lineGrad=el('linearGradient',{id:'chartLineGradient',x1:'0',x2:'1',y1:'0',y2:'0'},defs);
+ const lineGrad=el('linearGradient',{id:lineId,x1:'0',x2:'1',y1:'0',y2:'0'},defs);
  el('stop',{offset:'0%','stop-color':'var(--acc)'},lineGrad);el('stop',{offset:'100%','stop-color':'var(--cy)'},lineGrad);
  for(let i=0;i<4;i++){const y=top+i*plotH/3,val=hi-i*(hi-lo)/3;el('line',{x1:left,x2:W-right,y1:y,y2:y,class:'chart-gridline'});const t=el('text',{x:left-9,y:y+4,'text-anchor':'end',class:'chart-axis-label'});t.textContent=(Math.abs(val)>=100?Math.round(val):Number(val.toFixed(1)))}
  const coords=pts.map((q,i)=>[X(i),Y(Number(q.v))]).filter(x=>Number.isFinite(x[1]));
  if(!coords.length)return h('p',{class:'mut'},'Недостаточно данных для графика.');
  const line=coords.map(x=>x.join(',')).join(' '),base=top+plotH;
  const area='M '+coords[0][0]+' '+base+' L '+coords.map(x=>x.join(' ')).join(' L ')+' L '+coords[coords.length-1][0]+' '+base+' Z';
- el('path',{d:area,fill:'url(#chartFillGradient)'});
- if(coords.length>1)el('polyline',{points:line,fill:'none',stroke:'url(#chartLineGradient)','stroke-width':3.5,'stroke-linecap':'round','stroke-linejoin':'round'});
+ el('path',{d:area,fill:'url(#'+fillId+')'});
+ if(coords.length>1)el('polyline',{points:line,fill:'none',stroke:'url(#'+lineId+')','stroke-width':3.5,'stroke-linecap':'round','stroke-linejoin':'round'});
  coords.forEach((xy,i)=>{el('circle',{cx:xy[0],cy:xy[1],r:7,fill:'var(--surf)',stroke:'var(--cy)','stroke-width':2.5});el('circle',{cx:xy[0],cy:xy[1],r:3.2,fill:'var(--acc)'});});
  const labelIndexes=[...new Set([0,Math.floor((pts.length-1)/2),pts.length-1])];
  labelIndexes.forEach(i=>{const t=el('text',{x:X(i),y:H-12,'text-anchor':i===0?'start':i===pts.length-1?'end':'middle',class:'chart-date-label'});t.textContent=pts[i].d});
