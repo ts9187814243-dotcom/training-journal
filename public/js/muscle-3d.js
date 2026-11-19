@@ -6,14 +6,15 @@ let THREE_PROMISE;
 async function threeModules(){
  if(!THREE_PROMISE)THREE_PROMISE=Promise.all([
   import('https://esm.sh/three@0.170.0'),
-  import('https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js?external=three')
+  import('https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js')
  ]);
  return THREE_PROMISE;
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
- let renderer,observer,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0;
+ let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0;
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const reset=()=>{if(body)body.rotation.y=0};
+ const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset)};
  window.addEventListener('muscle3d:reset',reset);
  try{
   const [THREE,{GLTFLoader}]=await threeModules();if(disposed)return;
@@ -26,7 +27,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
   const key=new THREE.DirectionalLight(0xffffff,3.1);key.position.set(3,5,6);scene.add(key);
   const fill=new THREE.DirectionalLight(0x8ce4e2,1.25);fill.position.set(-4,1,-4);scene.add(fill);
   const loader=new GLTFLoader();
-  const {DRACOLoader}=await import('https://esm.sh/three@0.170.0/examples/jsm/loaders/DRACOLoader.js?external=three');
+  const {DRACOLoader}=await import('https://esm.sh/three@0.170.0/examples/jsm/loaders/DRACOLoader.js');
   const draco=new DRACOLoader();draco.setDecoderPath(DRACO_URL);loader.setDRACOLoader(draco);
   setStatus('Загружаем анатомическую модель…');
   const gltf=await loader.loadAsync(MODEL_URL);draco.dispose();if(disposed)return;
@@ -54,8 +55,9 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
   });
   const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(280,Math.min(520,host.clientWidth*.88));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   observer=new ResizeObserver(resize);observer.observe(host);resize();
+  removalObserver=new MutationObserver(()=>{if(!host.isConnected)cleanup()});removalObserver.observe(document.body,{childList:true,subtree:true});
   const animate=()=>{if(disposed)return;raf=requestAnimationFrame(animate);renderer.render(scene,camera)};animate();
   setStatus('Модель готова · нажми на мышцу или вращай пальцем');
  }catch(error){setStatus('Ошибка загрузки 3D-модели');console.error('Muscle 3D:',error)}
- return ()=>{disposed=true;cancelAnimationFrame(raf);observer?.disconnect();renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset)};
+ return cleanup;
 }
