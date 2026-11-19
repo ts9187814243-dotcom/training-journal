@@ -352,41 +352,24 @@ function backup(){
   h('button',{class:'b p',onclick:()=>{try{const o=JSON.parse(ta.value);if(!Array.isArray(o.workouts)||!Array.isArray(o.logs))throw 0;if(!confirm('Заменить текущие данные загруженными?'))return;S={workouts:o.workouts,logs:o.logs,body:Array.isArray(o.body)?o.body:[],profile:o.profile&&typeof o.profile==='object'?o.profile:{}};save();bk=null;render()}catch(e){em.textContent='Не удалось прочитать данные. Вставьте текст копии целиком.'}}},'Загрузить'),
   h('button',{class:'b',onclick:()=>{bk=null;render()}},'Скрыть')));
 }
+let muscleRange='all',muscleDetail='';
 function muscleAnalytics(){
  const groups=['Грудь','Спина','Плечи','Бицепс','Трицепс','Квадрицепсы','Бицепс бедра','Ягодицы','Икры','Пресс'];
- const data=Object.fromEntries(groups.map(g=>[g,{sets:0,volume:0,workouts:new Set(),exercises:new Set()}]));
- const classify=name=>{
-  const n=name.toLowerCase(),meta=EXM[name],g=meta&&meta.g;
-  if(g==='Грудь')return 'Грудь';
-  if(g==='Спина')return /румын|становая|гиперэкстенз/.test(n)?'Бицепс бедра':'Спина';
-  if(g==='Плечи')return 'Плечи';
-  if(g==='Руки')return /разгиб|француз|трицепс|брусья/.test(n)?'Трицепс':'Бицепс';
-  if(g==='Пресс')return 'Пресс';
-  if(g==='Ноги'){
-   if(/икр|носк/.test(n))return 'Икры';
-   if(/ягод|мост|отведени/.test(n))return 'Ягодицы';
-   if(/румын|сгибан.*ног/.test(n))return 'Бицепс бедра';
-   return 'Квадрицепсы';
-  }
-  return null;
- };
- S.logs.forEach(log=>log.entries.forEach(entry=>{
-  const group=classify(entry.ex);if(!group||!data[group])return;
-  const item=data[group];item.workouts.add(log.date);item.exercises.add(entry.ex);
-  (entry.sets||[]).forEach(set=>{if((Number(set.r)||0)>0){item.sets++;if(Number(set.w)>0)item.volume+=Number(set.w)*Number(set.r)}});
- }));
- const total=groups.reduce((n,g)=>n+data[g].sets,0),max=Math.max(1,...groups.map(g=>data[g].sets));
- const cards=groups.map(g=>({g,...data[g]})).filter(x=>x.sets).sort((a,b)=>b.sets-a.sets);
- if(!cards.length)return h('div',{class:'card muscle-analytics'},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},'Добавьте упражнения в тренировочный журнал — здесь появится распределение подходов.'));
- return h('section',{class:'muscle-analytics'},
-  h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},'По всем сохранённым тренировкам')) ,h('span',{class:'muscle-total'},total+' подходов')),
-  h('div',{class:'muscle-bars'},...cards.map(x=>h('div',{class:'muscle-row'},
-   h('div',{class:'muscle-row-head'},h('b',{},x.g),h('span',{},x.sets+' подх.')),
-   h('div',{class:'muscle-track'},h('span',{class:'muscle-fill',style:'width:'+Math.max(3,x.sets/max*100)+'%'})),
-   h('div',{class:'muscle-row-meta'},h('span',{},x.workouts.size+' трен.'),h('span',{},x.exercises.size+' упр.'),h('span',{},x.volume?Math.round(x.volume).toLocaleString('ru-RU')+' кг·повт.':'без учёта веса'))
-  ))),
-  h('p',{class:'muscle-footnote'},'Подходы распределяются по основной группе упражнения. Для упражнений с собственным весом объём в кг не рассчитывается.')
- );
+ const now=new Date();now.setHours(0,0,0,0);const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ const end=iso(now),sd=new Date(now);if(muscleRange==='week')sd.setDate(sd.getDate()-6);else if(muscleRange==='month')sd.setDate(sd.getDate()-29);else if(muscleRange==='quarter')sd.setMonth(sd.getMonth()-3);
+ const start=muscleRange==='all'?'0000-01-01':iso(sd),duration=Math.max(1,Math.round((now-sd)/86400000)+1),pe=new Date(sd);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-duration+1);
+ const classify=name=>{const n=String(name).toLowerCase(),g=EXM[name]&&EXM[name].g;if(g==='Грудь')return 'Грудь';if(g==='Спина')return /румын|становая|гиперэкстенз/.test(n)?'Бицепс бедра':'Спина';if(g==='Плечи')return 'Плечи';if(g==='Руки')return /разгиб|француз|трицепс|брусья/.test(n)?'Трицепс':'Бицепс';if(g==='Пресс')return 'Пресс';if(g==='Ноги'){if(/икр|носк/.test(n))return 'Икры';if(/ягод|мост|отведени/.test(n))return 'Ягодицы';if(/румын|сгибан.*ног/.test(n))return 'Бицепс бедра';return 'Квадрицепсы'}return null};
+ const collect=(from,to)=>{const out=Object.fromEntries(groups.map(g=>[g,{sets:0,volume:0,workouts:new Set(),exercises:new Map()}]));S.logs.filter(l=>l.date>=from&&l.date<=to).forEach(log=>(log.entries||[]).forEach(e=>{const g=classify(e.ex);if(!g)return;const x=out[g];x.workouts.add(log.date);const ex=x.exercises.get(e.ex)||{sets:0,volume:0};(e.sets||[]).forEach(s=>{const r=Number(s.r)||0,w=Number(s.w)||0;if(r>0){x.sets++;ex.sets++;if(w>0){x.volume+=w*r;ex.volume+=w*r}}});x.exercises.set(e.ex,ex)}));return out};
+ const cur=collect(start,end),prev=collect(muscleRange==='all'?'0000-01-01':iso(ps),iso(pe));
+ const cards=groups.map(g=>({g,...cur[g],previous:prev[g]})).filter(x=>x.sets||x.previous.sets).sort((a,b)=>b.sets-a.sets),total=cards.reduce((n,x)=>n+x.sets,0),max=Math.max(1,...cards.map(x=>x.sets));
+ const delta=(a,b)=>b===0?(a===0?'—':'+∞'):(a>=b?'+':'')+((a-b)/b*100).toFixed(0)+'%';
+ const names={week:'Последние 7 дней',month:'Последние 30 дней',quarter:'Последние 3 месяца',all:'Всё время'};
+ const controls=h('div',{class:'row muscle-range-controls',style:'flex-wrap:wrap'},...['week','month','quarter','all'].map(k=>h('button',{class:'b '+(muscleRange===k?'p':''),onclick:()=>{muscleRange=k;muscleDetail='';render()}},names[k])));
+ if(!cards.length)return h('section',{class:'muscle-analytics'},h('h3',{},'Нагрузка по мышечным группам'),controls,h('p',{class:'mut'},'За выбранный период тренировок пока нет.'));
+ const avg=total/Math.max(1,cards.filter(x=>x.sets).length),low=cards.filter(x=>x.sets>0&&x.sets<avg*.45);
+ const insight=low.length?'Обрати внимание на '+low.map(x=>x.g).join(', ')+': подходов меньше среднего среди тренируемых групп. Это ориентир, а не диагноз дисбаланса — учитывай косвенную нагрузку и восстановление.':'Распределение подходов относительно равномерно среди задействованных групп. Учитывай также косвенную нагрузку и восстановление.';
+ const rows=cards.map(x=>{const open=muscleDetail===x.g,ex=[...x.exercises.entries()].sort((a,b)=>b[1].sets-a[1].sets).map(([n,v])=>h('div',{class:'muscle-exercise-row'},h('span',{},n),h('b',{},v.sets+' подх.'),h('small',{},v.volume?Math.round(v.volume).toLocaleString('ru-RU')+' кг·повт.':'—')));return h('div',{class:'muscle-row'},h('button',{type:'button',class:'muscle-row-toggle','aria-expanded':String(open),onclick:()=>{muscleDetail=open?'':x.g;render()}},h('b',{},x.g),h('span',{},x.sets+' подх.'),h('span',{},open?'−':'+')),h('div',{class:'muscle-track'},h('span',{class:'muscle-fill',style:'width:'+Math.max(3,x.sets/max*100)+'%'})),h('div',{class:'muscle-row-meta'},h('span',{},x.workouts.size+' трен.'),h('span',{},x.exercises.size+' упр.'),h('span',{},'к прошлому периоду: '+delta(x.sets,x.previous.sets)),h('span',{},'объём '+Math.round(x.volume).toLocaleString('ru-RU')+' кг·повт.')),open?h('div',{class:'muscle-detail'},...ex):null)});
+ return h('section',{class:'muscle-analytics'},h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},names[muscleRange])),h('span',{class:'muscle-total'},total+' подходов')),controls,h('div',{class:'muscle-bars'},...rows),h('div',{class:'muscle-balance'},h('b',{},'Баланс нагрузки'),h('p',{class:'muscle-insight'},insight)),h('p',{class:'muscle-footnote'},'Сравнение с предыдущим периодом такой же длительности. Основная группа упражнения; тоннаж без веса тела.'));
 }
 let progressRange='week';
 function progress(){
