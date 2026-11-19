@@ -626,3 +626,28 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .muscle-exercise-row b{color:var(--acc);font-size:11px}
 .muscle-exercise-row small{grid-column:1/-1;color:var(--mut);font-size:10px}
 @media(max-width:420px){.muscle-range-controls{gap:6px}.muscle-range-controls .b{padding:7px 9px;font-size:11px}.muscle-row-meta{font-size:9px}}
+
+/* Calendar history */
+.history-calendar-card{margin:18px 0;padding:20px;border:1px solid var(--glass-border);border-radius:26px;background:var(--glass);box-shadow:0 8px 26px rgba(20,67,73,.045);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.history-calendar-heading,.history-calendar-head,.history-day-title,.history-workout-summary,.history-workout-stats{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.history-calendar-heading{margin-bottom:16px}.history-calendar-heading h3,.history-day-title h3{margin:0;font-size:16px;font-weight:800}.history-calendar-heading .mut{margin:5px 0 0;font-size:12px}
+.history-calendar-legend{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:10px;white-space:nowrap}.history-calendar-legend i,.history-calendar-dot{width:6px;height:6px;border-radius:50%;background:var(--acc);display:inline-block}
+.history-calendar-head{margin-bottom:12px}.history-calendar-head strong{text-transform:capitalize;font-size:15px}
+.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.history-calendar-weekday{height:28px;display:grid;place-items:center;color:var(--mut);font-size:10px;font-weight:750}
+.history-calendar-empty{height:48px}
+.history-calendar-day{height:48px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid transparent;border-radius:13px;background:rgba(255,255,255,.025);color:var(--ink);font:650 13px Inter,system-ui,sans-serif;cursor:pointer}
+.history-calendar-day:hover{border-color:rgba(91,205,202,.35);background:rgba(71,199,192,.1)}
+.history-calendar-day.has-workout{background:rgba(65,205,195,.1);color:var(--acc);font-weight:800}
+.history-calendar-day.selected{background:var(--acc);color:#062326;border-color:var(--acc);box-shadow:0 4px 14px rgba(65,205,195,.2)}
+.history-calendar-day.selected .history-calendar-dot{background:#062326}
+.history-day-details{margin-top:18px;padding-top:16px;border-top:1px solid var(--glass-border)}
+.history-day-title{margin-bottom:12px;flex-wrap:wrap}.history-day-title h3{text-transform:capitalize}
+.history-workout-card{margin-top:12px;padding:15px;border:1px solid var(--glass-border);border-radius:18px;background:var(--tint)}
+.history-workout-summary h4{margin:0;font-size:14px}.history-workout-summary span,.history-workout-stats{color:var(--mut);font-size:11px}
+.history-workout-stats{margin:10px 0 12px;flex-wrap:wrap}
+.history-exercise{padding:11px 0;border-top:1px solid var(--glass-border)}
+.history-exercise>strong{font-size:13px}.history-set-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.history-set-chip{padding:5px 8px;border:1px solid var(--glass-border);border-radius:9px;background:rgba(65,205,195,.07);color:var(--ink);font-size:11px;font-variant-numeric:tabular-nums}
+.history-exercise small{display:block;margin-top:6px}
+@media(max-width:520px){.history-calendar-card{padding:14px;border-radius:21px}.history-calendar-grid{gap:4px}.history-calendar-day,.history-calendar-empty{height:42px}.history-calendar-day{border-radius:10px;font-size:12px}.history-workout-card{padding:12px}.history-calendar-heading h3{font-size:15px}}
