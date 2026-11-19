@@ -130,6 +130,7 @@ let tab='plans',draft=null,sess=null,sel=null,err='';
 let fresh=false;const go=t=>{tab=t;if(t==='profile')settingsOpen=false;err='';fresh=true;render()};
 const e1=(w,r)=>w*(1+r/30);
 const lastSets=ex=>{for(let i=S.logs.length-1;i>=0;i--){const en=S.logs[i].entries.find(x=>x.ex===ex);if(en)return en.sets.map(s=>({w:s.w,r:s.r}))}return [{w:'',r:''}]};
+const progressionHint=ex=>{for(let i=S.logs.length-1;i>=0;i--){const entry=S.logs[i].entries.find(x=>x.ex===ex);if(!entry)continue;const feeling=entry.feeling;if(feeling==='easy')return 'В прошлый раз было легко — попробуй добавить 1 повтор в одном-двух подходах. Если повторы уже даются уверенно, можно немного повысить вес.';if(feeling==='hard')return 'В прошлый раз было тяжело — пока не повышай вес. Сначала попробуй выполнить прошлый объём увереннее или немного сократи повторы.';if(feeling==='normal')return 'В прошлый раз нагрузка была комфортной — попробуй повторить результат и постепенно улучшить повторы.';return 'Ориентир: повтори прошлый результат и оцени сложность упражнения после подходов.'}return 'Начни с комфортного веса и подбери нагрузку по ощущениям.'};
 
 const EX=[
 ['Жим штанги лёжа','Грудь','Штанга','bench'],['Жим гантелей лёжа','Грудь','Гантели','dbbench'],['Жим штанги на наклонной скамье','Грудь','Штанга','incline'],['Жим гантелей на наклонной скамье','Грудь','Гантели','dbincline'],['Отжимания от пола','Грудь','Свой вес','pushup'],['Отжимания с широкой постановкой рук','Грудь','Свой вес','widepush'],['Сведение рук в тренажёре «бабочка»','Грудь','Тренажёр','pecdeck'],['Сведение рук в кроссовере','Грудь','Блок','crossover'],['Жим в тренажёре на грудь','Грудь','Тренажёр','chestmachine'],['Пуловер с гантелью','Грудь','Гантели','pullover'],
@@ -257,6 +258,7 @@ function log(){
   S.settings.rest>0?h('div',{class:'row',style:'margin-top:10px'},h('button',{class:'b grow',onclick:()=>startRest(Number(S.settings.rest))},tr('Отдых')+' '+(S.settings.rest>=60?(S.settings.rest/60)+' '+tr('мин'):S.settings.rest+' '+tr('с')))):null,
   sess.entries.map(en=>h('div',{class:'card workout-exercise-card'},h('div',{class:'row'},thumb(en.ex,1),h('h3',{class:'grow'},en.ex),h('button',{class:'x',onclick:()=>{sess.entries=sess.entries.filter(x=>x!==en);render()}},'Убрать')),
    h('div',{class:'workout-previous'},h('span',{},'Прошлый результат'),h('strong',{},(()=>{const prev=lastSets(en.ex);return prev.some(s=>s.w||s.r)?prev.map(s=>(s.w?(S.settings.units==='lb'?(Number(s.w)*2.2046226218).toFixed(1):s.w):'—')+' '+(S.settings.units==='lb'?'lb':'кг')+' × '+(s.r||'—')).join(' · '):'Пока нет записей'} )())),
+    h('p',{class:'workout-progression-hint'},progressionHint(en.ex)),
    h('div',{class:'sets'},h('span'),h('span',{class:'hd'},'Вес, '+(S.settings.units==='lb'?'lb':'кг')),h('span',{class:'hd'},'Повторы'),h('span'),
     en.sets.map((s,i)=>[h('span',{class:'hd'},i+1),
      h('input',{type:'text',inputmode:'decimal',value:s.w?(S.settings.units==='lb'?(Number(s.w)*2.2046226218).toFixed(1):s.w):'','aria-label':'Вес, подход '+(i+1),oninput:e=>s.w=e.target.value,style:'text-align:center'}),
