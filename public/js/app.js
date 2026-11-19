@@ -1,3 +1,4 @@
+import { renderCoachMessage } from './coach-renderer.js';
 
 const KEY='wlog-v1';
 let S={workouts:[],logs:[]};
@@ -355,6 +356,7 @@ async function ask(text){
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||'Не удалось получить ответ от ИИ-тренера.');
   ai.t=data.reply||'Модель вернула пустой ответ.';
+  ai.structured=data.structured&&data.structured.version===1?data.structured:null;
   ai.provider=data.provider;
  }catch(e){CH.err=e.message||'Ошибка соединения с сервером. Проверьте подключение и попробуйте ещё раз.';if(!ai.t)CH.msgs.pop()}
  CH.busy=false;render();window.scrollTo({top:document.body.scrollHeight});
@@ -402,7 +404,20 @@ function coachV(){
   h('div',{class:'aic'},spark(),h('p',{class:'mut',style:'margin:0'},'Тренер видит ваш профиль, вес тела, планы и последние тренировки, когда вы отправляете сообщение. Это не медицинская консультация.')),
 
   h('div',{class:'chips'},['Проанализируй мой прогресс','Составь план на неделю','Какие веса взять в следующий раз?','Чего не хватает в моих тренировках?'].map(t=>h('button',{class:'b',disabled:off,onclick:()=>ask(t)},t))),
-  CH.msgs.map((m,i)=>{const last=CH.busy&&i===CH.msgs.length-1;return h('div',{class:'msg '+m.r,id:last?'stream':null},m.t||(last?'Думаю…':''))}),
+  CH.msgs.map((m,i)=>{
+   const last=CH.busy&&i===CH.msgs.length-1;
+   const bubble=h('div',{class:'msg '+m.r,id:last?'stream':null});
+   if(m.r==='a'&&m.t){
+    const previous=CH.msgs.slice(0,i).reverse().find(x=>x.r==='u');
+    bubble.append(renderCoachMessage(m,{
+     onCopy:()=>{const value=m.t||'';if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(value).catch(()=>{});},
+     onRetry:()=>{if(previous&&!CH.busy)ask(previous.t)},
+     onClarify:()=>{cDraft='Уточни, пожалуйста, рекомендации из предыдущего ответа и объясни, как их применить.';render();const field=document.querySelector('#v input[aria-label="Сообщение тренеру"]');if(field)field.focus();},
+     onAddPlan:()=>{const exercises=(m.structured.exercises||[]).map(x=>x.name).filter(Boolean);if(!exercises.length)return;if(!confirm('Создать новый план из '+exercises.length+' рекомендованных упражнений?'))return;const name='Рекомендации ИИ — '+new Date().toLocaleDateString();S.workouts.push({id:uid(),name,exercises:undefined,ex:exercises});save();alert('План «'+name+'» добавлен в раздел «Планы». Веса и подходы из карточек можно использовать при записи тренировки.');go('plans');}
+    }));
+   }else bubble.textContent=m.t||(last?'Думаю…':'');
+   return bubble;
+  }),
   CH.err&&h('p',{class:'err'},CH.err),
   h('div',{class:'row',style:'margin-top:10px'},h('div',{class:'grow'},inp),h('button',{class:'b p',disabled:off,onclick:send},'Отправить')),
   CH.msgs.length?h('button',{class:'x',onclick:()=>{if(!CH.busy){CH.msgs=[];CH.err='';render()}}},'Очистить диалог'):null);
