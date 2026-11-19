@@ -291,9 +291,10 @@ function chart(pts,unit){
 let rest={end:0,iv:null};
 function stopRest(){clearInterval(rest.iv);document.getElementById('rest').hidden=true}
 document.getElementById('rs').addEventListener('click',stopRest);
-document.getElementById('rplus').addEventListener('click',()=>{if(rest.end>Date.now()){rest.end+=15000;const t=document.getElementById('rt');const l=Math.ceil((rest.end-Date.now())/1000);t.textContent=tr('Отдых')+' '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')}});
-function startRest(sec){clearInterval(rest.iv);rest.end=Date.now()+sec*1000;const t=document.getElementById('rt');document.getElementById('rest').hidden=false;
- const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){t.textContent=tr('Отдых закончен');clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}if(S.settings.notifications&&'Notification'in window&&Notification.permission==='granted')new Notification('Журнал тренировок',{body:'Время отдыха закончилось. Следующий подход!'});return}t.textContent=tr('Отдых')+' '+Math.floor(l/60)+':'+String(l%60).padStart(2,'0')};
+function updateRestDisplay(label,seconds){document.getElementById('rest-label').textContent=label;document.getElementById('rest-time').textContent=seconds}
+document.getElementById('rplus').addEventListener('click',()=>{if(rest.end>Date.now()){rest.end+=15000;const l=Math.ceil((rest.end-Date.now())/1000);updateRestDisplay(tr('Отдых'),Math.floor(l/60)+':'+String(l%60).padStart(2,'0'))}});
+function startRest(sec){clearInterval(rest.iv);rest.end=Date.now()+sec*1000;document.getElementById('rest').hidden=false;
+ const tick=()=>{const l=Math.ceil((rest.end-Date.now())/1000);if(l<=0){updateRestDisplay(tr('Отдых закончен'),'00:00');clearInterval(rest.iv);try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}if(S.settings.notifications&&'Notification'in window&&Notification.permission==='granted')new Notification('Журнал тренировок',{body:'Время отдыха закончилось. Следующий подход!'});return}updateRestDisplay(tr('Отдых'),Math.floor(l/60)+':'+String(l%60).padStart(2,'0'))};
  tick();rest.iv=setInterval(tick,500)}
 function body(){
  const bi=h('input',{type:'text',inputmode:'decimal',placeholder:tr('Вес тела, '+(S.settings.units==='lb'?'lb':'кг')),'aria-label':tr('Вес тела, '+(S.settings.units==='lb'?'lb':'кг'))});
