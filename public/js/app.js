@@ -459,7 +459,28 @@ function historyCalendar(){
  return calendar;
 }
 
-let progressRange='week';
+let progressRange='week',progressPickerOpen=false,progressPickerQuery='';
+function progressExercisePicker(exs){
+ const wrap=h('div',{class:'progress-exercise-picker'});
+ const trigger=h('button',{type:'button',class:'progress-exercise-trigger','aria-haspopup':'dialog','aria-expanded':String(progressPickerOpen),onclick:()=>{progressPickerOpen=true;progressPickerQuery='';render()}},h('span',{},sel||'Выбрать упражнение'),h('span',{class:'progress-exercise-chevron'},'▾'));
+ wrap.append(trigger);
+ if(!progressPickerOpen)return wrap;
+ const list=h('div',{class:'progress-exercise-options',role:'listbox'});
+ const search=h('input',{type:'search',class:'progress-exercise-search',placeholder:'Поиск упражнения','aria-label':'Поиск упражнения',value:progressPickerQuery,oninput:e=>{progressPickerQuery=e.target.value;fillOptions()}});
+ const fillOptions=()=>{
+  const q=progressPickerQuery.trim().toLocaleLowerCase();
+  const filtered=exs.filter(name=>name.toLocaleLowerCase().includes(q));
+  list.replaceChildren(...(filtered.length?filtered.map(name=>h('button',{type:'button',class:'progress-exercise-option'+(name===sel?' is-selected':''),role:'option','aria-selected':String(name===sel),onclick:()=>{sel=name;progressPickerOpen=false;progressPickerQuery='';render()}},name)): [h('p',{class:'progress-exercise-empty'},'Ничего не найдено')]));
+ };
+ fillOptions();
+ const count=h('p',{class:'progress-exercise-count'},exs.length+' упражнений');
+ const dialog=h('section',{class:'progress-exercise-dialog',role:'dialog','aria-modal':'true','aria-label':'Выбор упражнения'},
+  h('div',{class:'progress-exercise-dialog-head'},h('strong',{},'Выбрать упражнение'),h('button',{type:'button',class:'progress-exercise-close','aria-label':'Закрыть',onclick:()=>{progressPickerOpen=false;render()}},'×')),
+  search,list,count);
+ const overlay=h('div',{class:'progress-exercise-overlay',onclick:e=>{if(e.target===overlay){progressPickerOpen=false;render()}}},dialog);
+ wrap.append(overlay);
+ return wrap;
+}
 function progress(){
  const exs=[...new Set(S.logs.flatMap(l=>l.entries.map(e=>e.ex)))];
  if(!exs.length)return h('div',{},h('h2',{},'Прогресс'),h('p',{class:'mut'},'Здесь появятся рекорды и графики после первой записанной тренировки.'),h('button',{class:'b p',onclick:()=>go('log')},'Записать тренировку'),body());
@@ -476,10 +497,10 @@ function progress(){
  const controls=h('div',{class:'row',style:'flex-wrap:wrap;margin:10px 0'},
   h('button',{class:'b '+(progressRange==='week'?'p':''),onclick:()=>{progressRange='week';render()}},'Последние 7 дней'),
   h('button',{class:'b '+(progressRange==='all'?'p':''),onclick:()=>{progressRange='all';render()}},'Всё время'));
- if(!all.length)return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
+ if(!all.length)return h('div',{},h('h2',{},'Прогресс'),progressExercisePicker(exs),controls,h('p',{class:'mut'},'За выбранный период тренировок с этим упражнением нет.'),body());
  const chartPts=hist.map(x=>({d:fd(x.l.date),v:hasW?Math.max(...x.en.sets.map(s=>e1(s.w,s.r))):Math.max(...x.en.sets.map(s=>s.r))}));
  const mw=Math.max(...all.map(s=>s.w)),mr=Math.max(...all.map(s=>s.r)),vol=all.reduce((a,s)=>a+(s.w||1)*s.r,0);
- return h('div',{},h('h2',{},'Прогресс'),h('select',{'aria-label':'Упражнение',onchange:e=>{sel=e.target.value;render()}},exs.map(x=>h('option',{value:x,selected:x===sel},x))),controls,
+ return h('div',{},h('h2',{},'Прогресс'),progressExercisePicker(exs),controls,
   h('div',{class:'stats'},hasW?st('Рекорд веса',mw+' кг','pr'):st('Рекорд повторов',mr,'pr'),hasW?st('Расчётный максимум на 1 раз',Math.round(Math.max(...all.map(s=>e1(s.w,s.r))))+' кг'):st('Тренировок',hist.length),st('Объём за период',Math.round(vol).toLocaleString('ru-RU')+(hasW?' кг':' повт.')),st('Тренировок с ним',hist.length)),
   comparison,muscleAnalytics(),h('div',{class:'card'},h('p',{class:'mut',style:'margin:0 0 6px'},hasW?'Расчётный максимум на 1 раз по формуле Эпли, кг':'Лучший подход, повторы'),chart(chartPts,hasW?'расчётный максимум':'повторы')),body(),
   historyCalendar());
