@@ -471,3 +471,11 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .workout-exercise-feedback-options .workout-feeling.selected{border-color:var(--acc);background:rgba(73,211,202,.17);box-shadow:inset 0 0 0 1px var(--acc);color:var(--ink)}
 .workout-feedback-actions{position:sticky;bottom:-20px;padding:12px 0 0;background:linear-gradient(180deg,transparent,var(--surf) 25%)}
 @media(max-width:520px){.workout-exercise-feedback{max-height:90dvh}.workout-exercise-feedback-card{padding:11px}.workout-exercise-feedback-options{gap:6px}.workout-exercise-feedback-options .workout-feeling{display:flex;padding:10px 4px;font-size:12px;min-height:42px}.workout-feedback-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.workout-feedback-actions .b{padding-inline:8px;font-size:12px}}
+
+/* Editable workout title in the post-workout feedback dialog */
+.workout-name-field{display:grid;gap:7px;margin:16px 0 18px}
+.workout-name-field>span{font-size:12px;font-weight:700;color:var(--mut)}
+.workout-name-field input{width:100%;min-width:0;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(73,211,202,.055);color:var(--ink);font:inherit;font-size:15px;outline:none;transition:border-color .18s,box-shadow .18s}
+.workout-name-field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(73,211,202,.12)}
+.workout-name-field input::placeholder{color:var(--mut)}
+@media(max-width:520px){.workout-name-field input{font-size:16px;padding:13px}}

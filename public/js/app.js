@@ -462,7 +462,8 @@ function showWorkoutFeedbackDialog(log){
  const dialog=h('section',{class:'confirm-dialog workout-feedback-dialog workout-exercise-feedback',role:'dialog','aria-modal':'true','aria-labelledby':'workout-feedback-title','aria-describedby':'workout-feedback-description'});
  const icon=h('div',{class:'coach-dialog-icon'},'♥');
  const title=h('h2',{id:'workout-feedback-title'},'Оцени упражнения');
- const desc=h('p',{id:'workout-feedback-description'},'Отметь, насколько тяжело далось каждое упражнение. Это поможет тренеру точнее подобрать нагрузку в следующий раз.');
+ const desc=h('p',{id:'workout-feedback-description'},'Измени название тренировки и отметь, насколько тяжело далось каждое упражнение. Это поможет тренеру точнее подобрать нагрузку в следующий раз.');
+ const nameField=h('label',{class:'workout-name-field'},h('span',{},'Название тренировки'),h('input',{type:'text',value:log.name||'',maxlength:80,placeholder:'Например, грудь и трицепс','aria-label':'Название тренировки',oninput:e=>{log.name=e.target.value}}));
  const list=h('div',{class:'workout-exercise-feedback-list'});
  const labels=[['easy','Легко'],['normal','Нормально'],['hard','Тяжело']];
  log.entries.forEach(entry=>{
@@ -483,9 +484,9 @@ function showWorkoutFeedbackDialog(log){
  const skip=h('button',{class:'b',type:'button',onclick:()=>finish()},'Пропустить оценки');
  const saveBtn=h('button',{class:'b p',type:'button',onclick:()=>finish()},'Сохранить тренировку');
  function close(){overlay.remove();document.removeEventListener('keydown',onKey)}
- function finish(){S.logs.push(log);S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=log.entries[0].ex;sess=null;err='';close();go('progress')}
+ function finish(){log.name=(log.name||'').trim()||'Тренировка';S.logs.push(log);S.logs.sort((a,b)=>a.date.localeCompare(b.date));save();sel=log.entries[0].ex;sess=null;err='';close();go('progress')}
  const onKey=e=>{if(e.key==='Escape')finish()};
- dialog.append(icon,title,desc,list,h('div',{class:'confirm-actions workout-feedback-actions'},skip,saveBtn));overlay.append(dialog);
+ dialog.append(icon,title,desc,nameField,list,h('div',{class:'confirm-actions workout-feedback-actions'},skip,saveBtn));overlay.append(dialog);
  overlay.addEventListener('click',e=>{if(e.target===overlay)finish()});
  document.addEventListener('keydown',onKey);document.body.append(overlay);
 }
