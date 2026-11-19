@@ -394,27 +394,11 @@ function muscleAnalytics(){
    ]
   };
   const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
-  const figures=h('div',{class:'anatomy-figures'});
-  for(const side of ['front','back']){
-   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 120 300');svg.setAttribute('role','img');svg.setAttribute('aria-label',side==='front'?'Анатомическая модель спереди':'Анатомическая модель сзади');
-   const defs=document.createElementNS(ns,'defs');
-   defs.innerHTML='<linearGradient id="body-'+side+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#718b91"/><stop offset=".22" stop-color="#d1dfe0"/><stop offset=".5" stop-color="#f0f4f1"/><stop offset=".78" stop-color="#aabfc0"/><stop offset="1" stop-color="#607b80"/></linearGradient><linearGradient id="muscle-'+side+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eff8f5" stop-opacity=".84"/><stop offset=".48" stop-color="#9db8b8" stop-opacity=".65"/><stop offset="1" stop-color="#536f75" stop-opacity=".9"/></linearGradient><filter id="shadow-'+side+'" x="-30%" y="-20%" width="160%" height="150%"><feGaussianBlur stdDeviation="2.2"/></filter>';
-   svg.append(defs);
-   const shadow=document.createElementNS(ns,'ellipse');shadow.setAttribute('cx','60');shadow.setAttribute('cy','292');shadow.setAttribute('rx','30');shadow.setAttribute('ry','4');shadow.setAttribute('fill','#000');shadow.setAttribute('opacity','.28');shadow.setAttribute('filter','url(#shadow-'+side+')');svg.append(shadow);
-   const base=document.createElementNS(ns,'path');
-   base.setAttribute('d','M52 7 Q60 3 68 7 Q76 14 72 29 Q70 37 66 40 L66 46 Q79 45 88 54 Q96 63 98 82 L104 111 Q105 119 98 121 Q92 122 90 114 L82 87 L80 128 Q83 148 82 169 L85 216 Q86 225 79 229 L81 271 Q82 284 74 287 Q66 288 65 278 L60 231 L55 278 Q54 288 46 287 Q38 284 39 271 L41 229 Q34 225 35 216 L38 169 Q37 148 40 128 L38 87 L30 114 Q28 122 22 121 Q15 119 16 111 L22 82 Q24 63 32 54 Q41 45 54 46 L54 40 Q50 37 48 29 Q44 14 52 7 Z');
-   base.setAttribute('fill','url(#body-'+side+')');base.setAttribute('stroke','#d7e8e4');base.setAttribute('stroke-opacity','.55');base.setAttribute('stroke-width','1.2');svg.append(base);
-   const neck=document.createElementNS(ns,'path');neck.setAttribute('d','M53 36 Q60 43 67 36 L67 49 Q60 54 53 49 Z');neck.setAttribute('fill','url(#muscle-'+side+')');neck.setAttribute('opacity','.8');svg.append(neck);
-   for(const [g,d] of parts[side]){
-    const count=values[g]||0,opacity=count?(.24+.68*count/max):.08;
-    const p=document.createElementNS(ns,'path');p.setAttribute('d',d);p.setAttribute('fill',count?'rgba(44,211,196,'+opacity+')':'url(#muscle-'+side+')');p.setAttribute('stroke',count?'rgba(151,255,239,.92)':'rgba(49,83,89,.45)');p.setAttribute('stroke-width','.8');p.setAttribute('class','anatomy-region'+(muscleDetail===g?' active':''));p.setAttribute('tabindex','0');p.setAttribute('role','button');p.setAttribute('aria-label',g+', '+count+' подходов');p.style.cursor='pointer';
-    const select=()=>{muscleDetail=muscleDetail===g?'':g;render()};p.addEventListener('click',select);p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select()}});
-    const title=document.createElementNS(ns,'title');title.textContent=g+': '+count+' подходов';p.append(title);svg.append(p);
-   }
-   const detail=document.createElementNS(ns,'g');detail.setAttribute('class','anatomy-contours');detail.innerHTML=side==='front'?'<path d="M54 50 Q60 58 66 50 M43 92 Q60 108 77 92 M60 105 V147 M48 115 Q60 119 72 115 M48 128 Q60 132 72 128 M48 141 Q60 145 72 141 M41 154 Q49 164 56 153 M64 153 Q72 164 80 154 M46 230 Q50 242 53 252 M74 230 Q70 242 67 252" />':'<path d="M53 49 Q60 57 67 49 M43 91 Q60 103 77 91 M60 82 V132 M47 112 Q60 119 73 112 M43 139 Q60 151 77 139 M60 139 V170 M45 177 Q51 192 54 211 M75 177 Q69 192 66 211 M45 232 Q50 246 52 259 M75 232 Q70 246 68 259"/>';svg.append(detail);
-   figures.append(h('div',{class:'anatomy-figure'},svg,h('span',{},side==='front'?'Спереди':'Сзади')));
-  }
-  wrap.append(figures);
+  const figures=h('div',{class:'anatomy-real-image-wrap'});
+  const image=h('img',{class:'anatomy-real-image',src:'https://upload.wikimedia.org/wikipedia/commons/e/ef/Muscles_front_and_back.svg',alt:'Подробная анатомическая схема мышц человека: вид спереди и сзади',loading:'lazy'});
+  figures.append(image);
+  const attribution=h('small',{class:'anatomy-attribution'},'Иллюстрация: OpenStax, Tomáš Kebert / Wikimedia Commons · CC BY-SA 4.0');
+  wrap.append(figures,attribution);
   const legend=h('div',{class:'anatomy-legend'});
   cards.forEach(x=>legend.append(h('button',{type:'button',class:'anatomy-legend-item'+(muscleDetail===x.g?' active':''),onclick:()=>{muscleDetail=muscleDetail===x.g?'':x.g;render()}},h('i',{style:'opacity:'+(.25+.75*x.sets/max)}),h('span',{},x.g),h('b',{},x.sets))));
   wrap.append(legend);return wrap;
