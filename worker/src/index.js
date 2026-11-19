@@ -1,7 +1,9 @@
 const ALLOWED_ORIGIN = "https://training-journal-3vk.pages.dev";
 const GEMINI_MODEL_DEFAULT = "gemini-2.5-flash";
 const GROQ_MODEL_DEFAULT = "openai/gpt-oss-120b";
-const INSTRUCTIONS = `Ты — персональный тренер по силовым тренировкам в приложении-дневнике. Используй профиль и историю тренировок. Анализируй прогрессию нагрузок, объём, частоту, восстановление и баланс мышечных групп. Давай конкретные реалистичные рекомендации, не выдумывай прошлые результаты. Если данных мало, скажи об этом. Не ставь диагнозов и не назначай лечение. При боли, травмах или хронических заболеваниях рекомендуй консультацию врача. Не поощряй опасные максимальные попытки и тренировку через боль. Отвечай понятно и по делу, обычно до 250 слов.`;
+const INSTRUCTIONS = `Ты — персональный тренер по силовым тренировкам в приложении-дневнике. Используй профиль и историю тренировок. Анализируй прогрессию нагрузок, объём, частоту, восстановление и баланс мышечных групп. Давай конкретные реалистичные рекомендации, не выдумывай прошлые результаты. Если данных мало, скажи об этом. Не ставь диагнозов и не назначай лечение. При боли, травмах или хронических заболеваниях рекомендуй консультацию врача. Не поощряй опасные максимальные попытки и тренировку через боль. Отвечай понятно и по делу, обычно до 250 слов.
+
+ФОРМАТ ОТВЕТА: верни только один корректный JSON-объект без Markdown-ограждений и текста до/после. Схема: {"version":1,"kind":"text"|"recommendation","title":"короткий заголовок или пустая строка","summary":"краткий вывод или пустая строка","sections":[{"title":"заголовок","content":"текст раздела"}],"exercises":[{"name":"название упражнения","current":"текущий результат или пустая строка","recommendation":"целевая рекомендация или пустая строка","sets":[{"weight":"вес с единицей или пустая строка","reps":"повторения или пустая строка"}],"reason":"обоснование"}],"tips":["короткий совет"],"warnings":["важное ограничение или предупреждение"]}. Все массивы обязательны; если данных нет, используй []. Не выдумывай веса, подходы или результаты: если данных недостаточно, явно сообщи об этом в summary или sections. Для обычного вопроса используй kind=text и заполняй sections; для рекомендаций по тренировкам используй kind=recommendation и exercises. Значения веса и повторений возвращай строками, не заменяй неизвестные значения нулями.`;
 
 function json(data, status = 200, origin = "") {
   const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
@@ -178,6 +180,59 @@ async function deleteAccount(request, env, origin) {
   return json({ ok: true }, 200, origin);
 }
 
+
+function boundedText(value, max = 1200) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function parseCoachPayload(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const candidate = raw.trim().replace(/^`{3}(?:json)?\s*/i, "").replace(/\s*`{3}$/i, "");
+  try {
+    const parsed = JSON.parse(candidate);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || parsed.version !== 1) return null;
+    const list = (value, mapper, limit = 8) => Array.isArray(value) ? value.slice(0, limit).map(mapper).filter(Boolean) : [];
+    const sections = list(parsed.sections, item => {
+      if (!item || typeof item !== "object") return null;
+      const title = boundedText(item.title, 100), content = boundedText(item.content, 1800);
+      return title || content ? { title, content } : null;
+    }, 8);
+    const exercises = list(parsed.exercises, item => {
+      if (!item || typeof item !== "object") return null;
+      const name = boundedText(item.name, 120);
+      if (!name) return null;
+      const sets = list(item.sets, set => {
+        if (!set || typeof set !== "object") return null;
+        const weight = boundedText(set.weight, 40), reps = boundedText(set.reps, 40);
+        return weight || reps ? { weight, reps } : null;
+      }, 12);
+      return { name, current: boundedText(item.current, 160), recommendation: boundedText(item.recommendation, 160), sets, reason: boundedText(item.reason, 500) };
+    }, 12);
+    const tips = list(parsed.tips, item => boundedText(item, 300), 8);
+    const warnings = list(parsed.warnings, item => boundedText(item, 300), 8);
+    const payload = { version: 1, kind: parsed.kind === "recommendation" ? "recommendation" : "text", title: boundedText(parsed.title, 120), summary: boundedText(parsed.summary, 500), sections, exercises, tips, warnings };
+    return payload.title || payload.summary || sections.length || exercises.length || tips.length || warnings.length ? payload : null;
+  } catch { return null; }
+}
+
+function coachPayloadToText(payload) {
+  const parts = [];
+  if (payload.title) parts.push("## " + payload.title);
+  if (payload.summary) parts.push(payload.summary);
+  for (const section of payload.sections) parts.push((section.title ? "### " + section.title + "\n" : "") + section.content);
+  for (const exercise of payload.exercises) {
+    let block = "### " + exercise.name;
+    if (exercise.current) block += "\nТекущий результат: " + exercise.current;
+    if (exercise.recommendation) block += "\nРекомендация: " + exercise.recommendation;
+    if (exercise.sets.length) block += "\n" + exercise.sets.map((set, i) => (i + 1) + ". " + [set.weight, set.reps].filter(Boolean).join(" × ")).join("\n");
+    if (exercise.reason) block += "\n" + exercise.reason;
+    parts.push(block);
+  }
+  if (payload.tips.length) parts.push("### Советы\n" + payload.tips.map(x => "- " + x).join("\n"));
+  if (payload.warnings.length) parts.push("### Важно\n" + payload.warnings.map(x => "- " + x).join("\n"));
+  return parts.join("\n\n");
+}
+
 async function coach(request, env, origin) {
   let body;
   try { body = await request.json(); } catch { return json({ error: "Некорректный JSON." }, 400, origin); }
@@ -197,8 +252,10 @@ async function coach(request, env, origin) {
     if (name === "gemini" && !env.GEMINI_API_KEY) { errors.push("Gemini: ключ не настроен"); continue; }
     if (name === "groq" && !env.GROQ_API_KEY) { errors.push("Groq: ключ не настроен"); continue; }
     try {
-      const reply = name === "cloudflare" ? await callCloudflare(input, language, env) : name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
-      return json({ reply, provider: name }, 200, origin);
+      const rawReply = name === "cloudflare" ? await callCloudflare(input, language, env) : name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
+      const structured = parseCoachPayload(rawReply);
+      const reply = structured ? coachPayloadToText(structured) : rawReply;
+      return json({ reply, structured, format: structured ? "coach.v1" : "text", provider: name }, 200, origin);
     } catch (error) {
       console.error(name + " API error:", error?.status || "", error?.message || error);
       errors.push(name + ": " + (error?.status === 429 ? "достигнут лимит запросов" : error?.status === 401 || error?.status === 403 ? "ключ недействителен или доступ запрещён" : "сервис временно недоступен"));
