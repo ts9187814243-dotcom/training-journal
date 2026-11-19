@@ -5,6 +5,8 @@ const INSTRUCTIONS = `Ты — персональный тренер по сил
 
 ФОРМАТ ОТВЕТА: верни только один корректный JSON-объект без Markdown-ограждений и текста до/после. Схема: {"version":1,"kind":"text"|"recommendation","title":"короткий заголовок или пустая строка","summary":"краткий вывод или пустая строка","sections":[{"title":"заголовок","content":"текст раздела"}],"exercises":[{"name":"название упражнения","current":"текущий результат или пустая строка","recommendation":"целевая рекомендация или пустая строка","sets":[{"weight":"вес с единицей или пустая строка","reps":"повторения или пустая строка"}],"reason":"обоснование"}],"tips":["короткий совет"],"warnings":["важное ограничение или предупреждение"]}. Все массивы обязательны; если данных нет, используй []. Не выдумывай веса, подходы или результаты: если данных недостаточно, явно сообщи об этом в summary или sections.
 
+ВАЖНО: не сокращай полную программу до одного рабочего подхода. Для рекомендации по следующей тренировке каждый exercise должен содержать не менее 3 рабочих подходов, обычно 3 для базовых и 3–4 для изолирующих. Если в истории есть привычное количество подходов, сохраняй его. Если назначить веса безопасно нельзя, оставь sets пустым и объясни почему; не подменяй полную программу одним подходом.
+
 ВАЖНО ДЛЯ ПЛАНА СЛЕДУЮЩЕЙ ТРЕНИРОВКИ: exercises и sets должны описывать ПОЛНУЮ тренировочную схему упражнения, а не только изменения к прошлой тренировке и не дополнительные подходы. В sets перечисляй все рабочие подходы, которые пользователь должен выполнить в следующий раз. Не сокращай план до 1–2 подходов без явной причины. Если в истории видно обычное количество рабочих подходов для этого упражнения, сохраняй его. Если точное количество неизвестно, ориентируйся обычно на 3 рабочих подхода для базового упражнения и 3–4 для изолирующего, учитывая восстановление и общий недельный объём. Не добавляй разминку в sets: разминочные подходы, если нужны, укажи отдельно в sections и явно подпиши как разминку. Если предлагаешь дополнительный подход сверх обычного объёма, сначала перечисли полную основную схему в sets, а добавление объясни отдельно в reason. Не назначай рост веса в каждом подходе автоматически: выбирай одинаковый или ступенчатый вес только если это обосновано историей. recommendation должна кратко суммировать полную схему (например, "4 рабочих подхода: 2×10 и 2×8"), а не только перечислять прибавку. Для обычного вопроса используй kind=text и заполняй sections; для рекомендаций по тренировкам используй kind=recommendation и exercises. Значения веса и повторений возвращай строками, не заменяй неизвестные значения нулями.`;
 
 function json(data, status = 200, origin = "") {
@@ -254,8 +256,20 @@ async function coach(request, env, origin) {
     if (name === "gemini" && !env.GEMINI_API_KEY) { errors.push("Gemini: ключ не настроен"); continue; }
     if (name === "groq" && !env.GROQ_API_KEY) { errors.push("Groq: ключ не настроен"); continue; }
     try {
-      const rawReply = name === "cloudflare" ? await callCloudflare(input, language, env) : name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
-      const structured = parseCoachPayload(rawReply);
+      let rawReply = name === "cloudflare" ? await callCloudflare(input, language, env) : name === "gemini" ? await callGemini(input, language, env) : await callGroq(input, language, env);
+      let structured = parseCoachPayload(rawReply);
+
+      // A recommendation with only one or two working sets is incomplete.
+      // Ask the same provider once more to return the complete prescription.
+      if (structured?.kind === "recommendation" && structured.exercises.some(ex => ex.sets.length > 0 && ex.sets.length < 3)) {
+        const correction = {
+          role: "user",
+          content: "Исправь предыдущий JSON-ответ. Он неполный: в одном или нескольких упражнениях указано меньше 3 рабочих подходов. Верни полный JSON по той же схеме. Для каждого упражнения в рекомендации укажи не менее 3 рабочих подходов (обычно 3 для базовых и 3–4 для изолирующих). Если в истории есть фактическое число подходов, ориентируйся на него. Не включай разминку. Не сокращай схему до одного подхода и не описывай только изменение веса. Укажи конкретный вес и повторы для каждого рабочего подхода; если данных недостаточно для безопасного назначения, оставь sets пустым и объясни это в reason, но не выдавай один подход за полную программу."
+        };
+        const retryInput = [...input, { role: "assistant", content: rawReply }, correction];
+        rawReply = name === "cloudflare" ? await callCloudflare(retryInput, language, env) : name === "gemini" ? await callGemini(retryInput, language, env) : await callGroq(retryInput, language, env);
+        structured = parseCoachPayload(rawReply);
+      }
       const reply = structured ? coachPayloadToText(structured) : rawReply;
       return json({ reply, structured, format: structured ? "coach.v1" : "text", provider: name }, 200, origin);
     } catch (error) {
