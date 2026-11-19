@@ -415,7 +415,17 @@ function historyCalendar(){
    details.push(h('article',{class:'history-workout-card'},h('div',{class:'history-workout-summary'},h('h4',{},log.name||'Тренировка'),h('span',{},entries.length+' упражн. · '+sets+' подходов')),h('div',{class:'history-workout-stats'},h('span',{},'Объём: '+Math.round(volume).toLocaleString('ru-RU')+' кг·повт.'),h('button',{type:'button',class:'b',onclick:()=>ask(sessText(log))},'Тренеру'),h('button',{type:'button',class:'x',onclick:()=>{if(confirm('Удалить эту тренировку из журнала?')){S.logs=S.logs.filter(x=>x!==log);save();render()}}},'Удалить')),...exercises));
   });
  }
- return h('section',{class:'history-calendar-card'},h('div',{class:'history-calendar-heading'},h('div',{},h('h3',{},'История тренировок'),h('p',{class:'mut'},'Выбери дату, чтобы посмотреть все упражнения и подходы')),h('span',{class:'history-calendar-legend'},h('i',{},''),'Тренировка')),nav,h('div',{class:'history-calendar-grid'},...weekdays.map(x=>h('span',{class:'history-calendar-weekday'},x)),...cells),historySelected?h('button',{type:'button',class:'history-modal-backdrop','aria-label':'Закрыть карточку тренировки',onclick:()=>{historySelected='';render()}}):null,h('section',{class:'history-day-details'+(historySelected?' is-open':'')},...details));
+ const calendar=h('section',{class:'history-calendar-card'},h('div',{class:'history-calendar-heading'},h('div',{},h('h3',{},'История тренировок'),h('p',{class:'mut'},'Выбери дату, чтобы посмотреть все упражнения и подходы')),h('span',{class:'history-calendar-legend'},h('i',{},''),'Тренировка')),nav,h('div',{class:'history-calendar-grid'},...weekdays.map(x=>h('span',{class:'history-calendar-weekday'},x)),...cells));
+ if(historySelected&&window.matchMedia('(max-width: 520px)').matches){
+  document.body.querySelectorAll('.history-modal-backdrop,.history-day-details.is-open').forEach(n=>n.remove());
+  const backdrop=h('button',{type:'button',class:'history-modal-backdrop','aria-label':'Закрыть карточку тренировки',onclick:()=>{historySelected='';render()}});
+  const modal=h('section',{class:'history-day-details is-open'},...details);
+  document.body.append(backdrop,modal);
+ }else{
+  document.body.querySelectorAll('.history-modal-backdrop,.history-day-details.is-open').forEach(n=>n.remove());
+  calendar.append(h('section',{class:'history-day-details'},...details));
+ }
+ return calendar;
 }
 
 let progressRange='week';
