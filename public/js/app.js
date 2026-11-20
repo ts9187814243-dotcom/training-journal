@@ -488,12 +488,12 @@ function muscleAnalytics(){
    const card=h('section',{class:'muscle-detail-card',role:'dialog','aria-modal':'true','aria-labelledby':'muscle-detail-title'});
    const close=h('button',{type:'button',class:'muscle-detail-close','aria-label':tr('Закрыть'),onclick:closeMuscleCard},'×');
    const head=h('div',{class:'muscle-detail-head'},h('div',{},h('span',{class:'muscle-detail-eyebrow'},tr('АНАТОМИЧЕСКАЯ КАРТА')),h('h3',{id:'muscle-detail-title'},label),h('p',{},tr(groupName))));
-   const stat=h('div',{class:'muscle-detail-stat'},h('strong',{},String(item.sets)),h('span',{},tr('подходов за выбранный период')));
+   const stat=h('div',{class:'muscle-detail-stat'},h('strong',{},formatMuscleLoadValue(item.sets)),h('span',{},tr('подходов за выбранный период')));
    card.append(close,head,stat);
    if(item.exercises&&item.exercises.size){
     const list=h('div',{class:'muscle-detail-exercises'},h('h4',{},tr('Упражнения')));
     [...item.exercises.entries()].forEach(([name,value])=>{
-     const row=h('button',{type:'button',class:'muscle-detail-exercise','aria-label':tr('Открыть статистику упражнения')+': '+tr(name),onclick:()=>{closeMuscleCard();sel=name;progressRange='all';render();document.querySelector('#v')?.scrollIntoView({behavior:'smooth',block:'start'})}},h('span',{},tr(name)),h('b',{},String(typeof value==='number'?value:value?.sets??'')),h('small',{},'↗'));
+     const row=h('button',{type:'button',class:'muscle-detail-exercise','aria-label':tr('Открыть статистику упражнения')+': '+tr(name),onclick:()=>{closeMuscleCard();sel=name;progressRange='all';render();document.querySelector('#v')?.scrollIntoView({behavior:'smooth',block:'start'})}},h('span',{},tr(name)),h('b',{},formatMuscleLoadValue(typeof value==='number'?value:value?.sets??'')),h('small',{},'↗'));
      list.append(row);
     });
     card.append(list);
