@@ -16,7 +16,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
  const zoomBy=delta=>{if(!camera)return;camera.position.z=Math.max(minCameraZ,Math.min(maxCameraZ,camera.position.z+delta))};
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const clearSelectedMuscle=()=>{if(selectedMuscle){const mat=selectedMuscle.material,base=selectedMuscle.userData.tjBaseColor;if(mat?.color&&base)mat.color.copy(base);if(mat?.emissive)mat.emissive.setHex(0x16b9b3);if(mat)mat.emissiveIntensity=selectedMuscle.userData.tjBaseEmissive??.025;selectedMuscle=null}};
- const reset=()=>{if(body)body.rotation.y=0;clearSelectedMuscle()};
+ const reset=()=>{if(body)body.rotation.y=0;if(camera)camera.position.z=initialCameraZ;clearSelectedMuscle()};
  const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset);window.removeEventListener('muscle3d:zoom',onZoom)};
  window.addEventListener('muscle3d:reset',reset);
  const onZoom=event=>zoomBy(Number(event.detail?.delta)||0);window.addEventListener('muscle3d:zoom',onZoom);
