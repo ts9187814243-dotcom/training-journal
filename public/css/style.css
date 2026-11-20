@@ -771,3 +771,28 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .muscle-detail-empty{color:var(--mut);font-size:13px;line-height:1.5}
 @keyframes muscleCardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){.muscle-detail-overlay{padding:14px}.muscle-detail-card{padding:22px 18px;border-radius:20px}.muscle-detail-head h3{font-size:20px}}
+
+
+/* Interactive direct/indirect muscle-load comparison */
+.muscle-compare-panel{margin:22px 0;padding:18px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,rgba(76,211,207,.075),rgba(12,34,37,.24));}
+.muscle-compare-heading h3{margin:0 0 5px;font-size:17px}
+.muscle-compare-heading .mut{margin:0 0 14px;font-size:12px;line-height:1.5}
+.muscle-compare-picker{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.muscle-compare-chip{font-size:12px;padding:8px 12px;border-radius:999px}
+.muscle-compare-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.muscle-compare-card{min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:rgba(5,22,25,.34)}
+.muscle-compare-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px}
+.muscle-compare-card-head strong{font-size:14px}
+.muscle-compare-card-head b{color:var(--accent);font-size:13px;white-space:nowrap}
+.muscle-compare-stacked{height:12px;display:flex;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.07)}
+.muscle-compare-stacked span{height:100%;min-width:0;transition:width .25s ease}
+.muscle-compare-direct{background:var(--accent)}
+.muscle-compare-indirect{background:#8b9aa8}
+.muscle-compare-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;color:var(--mut);font-size:11px}
+.muscle-compare-legend span{display:inline-flex;align-items:center;gap:5px}
+.muscle-compare-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.muscle-compare-legend .direct-dot{background:var(--accent)}
+.muscle-compare-legend .indirect-dot{background:#8b9aa8}
+.muscle-compare-card>.mut{margin:9px 0 0;font-size:11px}
+.muscle-compare-panel>.muscle-footnote{margin:14px 0 0}
+@media(max-width:600px){.muscle-compare-panel{padding:14px;margin:16px 0}.muscle-compare-results{grid-template-columns:1fr}.muscle-compare-card{padding:13px}}
