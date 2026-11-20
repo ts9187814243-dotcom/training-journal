@@ -46,7 +46,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    obj.material.side=THREE.DoubleSide;
   });
   const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
-  body.position.sub(center);body.scale.setScalar(2.55/Math.max(size.x,size.y,size.z));body.position.y-=.18;scene.add(body);
+  body.position.sub(center);body.scale.setScalar(2.55/Math.max(size.x,size.y,size.z));body.position.y-=.30;scene.add(body);
   body.updateMatrixWorld(true);
   const fittedBox=new THREE.Box3().setFromObject(body),sphere=fittedBox.getBoundingSphere(new THREE.Sphere());
   camera.position.set(0,0,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.08);camera.lookAt(0,-.08,0);
