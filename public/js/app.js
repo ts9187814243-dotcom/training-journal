@@ -396,19 +396,30 @@ function muscleAnalytics(){
   const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
   const figures=h('div',{class:'anatomy-real-image-wrap'});
   const viewer=h('div',{class:'muscle-3d-viewer','aria-label':'Интерактивная трёхмерная модель мышц человека'});
-  const viewerStatus=h('div',{class:'muscle-3d-status',role:'status','aria-live':'polite'});
-  const viewerDetail=h('div',{class:'muscle-3d-detail','aria-live':'polite'});
-  const viewerControls=h('div',{class:'muscle-3d-controls'},h('span',{},'Перетаскивай модель по горизонтали'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
-  viewer.append(viewerDetail,viewerControls);
+  const viewerControls=h('div',{class:'muscle-3d-controls'},h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
+  viewer.append(viewerControls);
   figures.append(viewer);
   const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Спина'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Бицепс'].sets,traps:cur['Спина'].sets};
-  import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onStatus:message=>{if(message==='Ошибка загрузки 3D-модели')viewerStatus.textContent=message},onSelect:info=>{
+  const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape)};
+  const muscleCardEscape=event=>{if(event.key==='Escape')closeMuscleCard()};
+  import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onSelect:info=>{
    const label=info.label||'Мышца',group=info.group||'';
    const groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Спина','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы';
    const item=cur[groupName]||{sets:0,exercises:new Map()};
-   viewerDetail.replaceChildren(h('strong',{},label),h('span',{},groupName+' · '+item.sets+' подходов за период'));
-   if(item.exercises&&item.exercises.size)viewerDetail.append(h('small',{},[...item.exercises.keys()].join(' · ')));
-  }})).catch(error=>{viewerStatus.textContent='Не удалось загрузить 3D-модель. Проверь подключение к интернету.';console.error('Muscle 3D:',error)});
+   closeMuscleCard();
+   const overlay=h('div',{class:'muscle-detail-overlay',role:'presentation',onclick:event=>{if(event.target===overlay)closeMuscleCard()}});
+   const card=h('section',{class:'muscle-detail-card',role:'dialog','aria-modal':'true','aria-labelledby':'muscle-detail-title'});
+   const close=h('button',{type:'button',class:'muscle-detail-close','aria-label':'Закрыть',onclick:closeMuscleCard},'×');
+   const head=h('div',{class:'muscle-detail-head'},h('div',{},h('span',{class:'muscle-detail-eyebrow'},'АНАТОМИЧЕСКАЯ КАРТА'),h('h3',{id:'muscle-detail-title'},label),h('p',{},groupName)));
+   const stat=h('div',{class:'muscle-detail-stat'},h('strong',{},String(item.sets)),h('span',{},'подходов за выбранный период'));
+   card.append(close,head,stat);
+   if(item.exercises&&item.exercises.size){
+    const list=h('div',{class:'muscle-detail-exercises'},h('h4',{},'Упражнения'));
+    [...item.exercises.entries()].forEach(([name,value])=>list.append(h('div',{class:'muscle-detail-exercise'},h('span',{},name),h('b',{},String(typeof value==='number'?value:value?.sets??'')))));
+    card.append(list);
+   }else card.append(h('p',{class:'muscle-detail-empty'},'За выбранный период нагрузка на эту мышцу не зарегистрирована.'));
+   overlay.append(card);document.body.append(overlay);document.addEventListener('keydown',muscleCardEscape);close.focus();
+  }})).catch(error=>{console.error('Muscle 3D:',error)});
   const attribution=h('small',{class:'anatomy-attribution'},'3D-модель: Free Muscle · Z-Anatomy / BodyParts3D · CC BY-SA 4.0');
   wrap.append(figures,attribution);
   const legend=h('div',{class:'anatomy-legend'});
