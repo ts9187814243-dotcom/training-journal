@@ -701,7 +701,7 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 
 /* Interactive 3D anatomy viewer */
 .muscle-3d-viewer{position:relative;width:100%;min-height:330px;border:1px solid var(--glass-border,var(--line));border-radius:24px;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,rgba(94,207,212,.16),transparent 62%),linear-gradient(145deg,rgba(255,255,255,.5),rgba(120,160,165,.08));touch-action:pan-y}
-.muscle-3d-canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:pan-y}.muscle-3d-canvas:active{cursor:grabbing}
+.muscle-3d-canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.muscle-3d-canvas:active{cursor:grabbing}
 .muscle-3d-status{position:absolute;z-index:2;top:12px;left:12px;right:12px;text-align:center;font-size:12px;color:var(--mut);pointer-events:none}
 .muscle-3d-detail{display:flex;flex-direction:column;gap:4px;padding:12px 16px 4px;text-align:center;color:var(--ink);font-size:13px}.muscle-3d-detail small{color:var(--mut);line-height:1.5}
 .muscle-3d-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:10px 12px 14px;color:var(--mut);font-size:11px}.muscle-3d-reset{font-size:12px!important;padding:7px 13px!important}
