@@ -1,4 +1,5 @@
 import { renderCoachMessage } from './coach-renderer.js';
+import { MUSCLE_GROUPS, getExerciseMuscleContributions } from './muscle-analytics.js';
 
 const KEY='wlog-v1';
 let S={workouts:[],logs:[]};
@@ -407,13 +408,35 @@ function backup(){
 }
 let muscleRange='week',muscleDetail='';
 function muscleAnalytics(){
- const groups=['Грудь','Спина','Плечи','Бицепс','Трицепс','Квадрицепсы','Бицепс бедра','Ягодицы','Икры','Пресс'];
+ const groups=['Грудь','Спина','Широчайшие','Плечи','Передняя дельта','Средняя дельта','Задняя дельта','Бицепс','Трицепс','Предплечья','Трапеции','Квадрицепсы','Бицепс бедра','Ягодицы','Икры','Пресс','Косые мышцы живота'];
  const now=new Date();now.setHours(0,0,0,0);const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
- const end=iso(now),sd=new Date(now);if(muscleRange==='week')sd.setDate(sd.getDate()-6);else if(muscleRange==='month')sd.setDate(sd.getDate()-29);else if(muscleRange==='quarter')sd.setMonth(sd.getMonth()-3);
- const start=muscleRange==='all'?'0000-01-01':iso(sd),duration=Math.max(1,Math.round((now-sd)/86400000)+1),pe=new Date(sd);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-duration+1);
- const classify=name=>{const n=String(name).toLowerCase(),g=EXM[name]&&EXM[name].g;if(g==='Грудь')return 'Грудь';if(g==='Спина')return /румын|становая|гиперэкстенз/.test(n)?'Бицепс бедра':'Спина';if(g==='Плечи')return 'Плечи';if(g==='Руки')return /разгиб|француз|трицепс|брусья/.test(n)?'Трицепс':'Бицепс';if(g==='Пресс')return 'Пресс';if(g==='Ноги'){if(/икр|носк/.test(n))return 'Икры';if(/ягод|мост|отведени/.test(n))return 'Ягодицы';if(/румын|сгибан.*ног/.test(n))return 'Бицепс бедра';return 'Квадрицепсы'}return null};
- const collect=(from,to)=>{const out=Object.fromEntries(groups.map(g=>[g,{sets:0,volume:0,workouts:new Set(),exercises:new Map()}]));S.logs.filter(l=>l.date>=from&&l.date<=to).forEach(log=>(log.entries||[]).forEach(e=>{const g=classify(e.ex);if(!g)return;const x=out[g];x.workouts.add(log.date);const ex=x.exercises.get(e.ex)||{sets:0,volume:0};(e.sets||[]).forEach(s=>{const r=Number(s.r)||0,w=Number(s.w)||0;if(r>0){x.sets++;ex.sets++;if(w>0){x.volume+=w*r;ex.volume+=w*r}}});x.exercises.set(e.ex,ex)}));return out};
- const cur=collect(start,end),prev=collect(muscleRange==='all'?'0000-01-01':iso(ps),iso(pe));
+ const endDate=iso(now),sd=new Date(now);if(muscleRange==='week')sd.setDate(sd.getDate()-6);else if(muscleRange==='month')sd.setDate(sd.getDate()-29);else if(muscleRange==='quarter')sd.setMonth(sd.getMonth()-3);
+ const startDate=muscleRange==='all'?'0000-01-01':iso(sd),duration=Math.max(1,Math.round((now-sd)/86400000)+1),pe=new Date(sd);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-duration+1);
+ // Historical entries remain unchanged: muscle contributions are derived at read time.
+ const collect=(from,to)=>{
+  const out=Object.fromEntries(groups.map(g=>[g,{sets:0,directSets:0,indirectSets:0,volume:0,workouts:new Set(),exercises:new Map()}]));
+  S.logs.filter(l=>l.date>=from&&l.date<=to).forEach(log=>(log.entries||[]).forEach(entry=>{
+   const fallbackGroup=EXM[entry.ex]?.g||'';
+   const contributions=getExerciseMuscleContributions(entry.ex,fallbackGroup);
+   if(!contributions.length)return;
+   const validSets=(entry.sets||[]).filter(set=>(Number(set.r)||0)>0);
+   if(!validSets.length)return;
+   contributions.forEach(({muscle,coefficient,type})=>{
+    const group=out[muscle];if(!group)return;
+    group.workouts.add(log.date);
+    const ex=group.exercises.get(entry.ex)||{sets:0,directSets:0,indirectSets:0,volume:0,coefficient};
+    validSets.forEach(set=>{
+     const reps=Number(set.r)||0,weight=Number(set.w)||0,weighted=coefficient;
+     group.sets+=weighted;ex.sets+=weighted;
+     if(type==='direct'){group.directSets+=1;ex.directSets+=1}else{group.indirectSets+=weighted;ex.indirectSets+=weighted}
+     if(weight>0){group.volume+=weight*reps*weighted;ex.volume+=weight*reps*weighted}
+    });
+    group.exercises.set(entry.ex,ex);
+   });
+  }));
+  return out;
+ };
+ const cur=collect(startDate,endDate),prev=collect(muscleRange==='all'?'0000-01-01':iso(ps),iso(pe));
  const cards=groups.map(g=>({g,...cur[g],previous:prev[g]})).filter(x=>x.sets||x.previous.sets).sort((a,b)=>b.sets-a.sets),total=cards.reduce((n,x)=>n+x.sets,0),max=Math.max(1,...cards.map(x=>x.sets));
  const muscleMap=()=>{
   const values=Object.fromEntries(groups.map(g=>[g,cur[g].sets]));
@@ -452,7 +475,7 @@ function muscleAnalytics(){
   const viewerControls=h('div',{class:'muscle-3d-controls'},h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
   viewer.append(viewerControls);
   figures.append(viewer);
-  const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Спина'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Бицепс'].sets,traps:cur['Спина'].sets};
+  const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets+cur['Передняя дельта'].sets+cur['Средняя дельта'].sets+cur['Задняя дельта'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Широчайшие'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Предплечья'].sets,traps:cur['Трапеции'].sets};
   const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape)};
   const muscleCardEscape=event=>{if(event.key==='Escape')closeMuscleCard()};
   import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onSelect:info=>{
