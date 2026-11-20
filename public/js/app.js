@@ -396,13 +396,13 @@ function muscleAnalytics(){
   const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
   const figures=h('div',{class:'anatomy-real-image-wrap'});
   const viewer=h('div',{class:'muscle-3d-viewer','aria-label':'Интерактивная трёхмерная модель мышц человека'});
-  const viewerStatus=h('div',{class:'muscle-3d-status',role:'status'},'Загрузка 3D-модели…');
-  const viewerDetail=h('div',{class:'muscle-3d-detail'},'Выбери мышцу на модели, чтобы увидеть нагрузку и упражнения.');
+  const viewerStatus=h('div',{class:'muscle-3d-status',role:'status','aria-live':'polite'});
+  const viewerDetail=h('div',{class:'muscle-3d-detail','aria-live':'polite'});
   const viewerControls=h('div',{class:'muscle-3d-controls'},h('span',{},'Перетаскивай модель по горизонтали'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
-  viewer.append(viewerStatus,viewerDetail,viewerControls);
+  viewer.append(viewerDetail,viewerControls);
   figures.append(viewer);
   const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Спина'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Бицепс'].sets,traps:cur['Спина'].sets};
-  import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onStatus:message=>{viewerStatus.textContent=message},onSelect:info=>{
+  import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onStatus:message=>{if(message==='Ошибка загрузки 3D-модели')viewerStatus.textContent=message},onSelect:info=>{
    const label=info.label||'Мышца',group=info.group||'';
    const groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Спина','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы';
    const item=cur[groupName]||{sets:0,exercises:new Map()};
