@@ -407,6 +407,7 @@ function backup(){
   h('button',{class:'b',onclick:()=>{bk=null;render()}},'Скрыть')));
 }
 let muscleRange='week',muscleDetail='';
+let compareMuscles=['Грудь','Трицепс','Передняя дельта'];
 function muscleAnalytics(){
  const groups=[...MUSCLE_GROUPS];
  const now=new Date();now.setHours(0,0,0,0);const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -513,7 +514,23 @@ function muscleAnalytics(){
  const avg=total/Math.max(1,cards.filter(x=>x.sets).length),low=cards.filter(x=>x.sets>0&&x.sets<avg*.45);
  const insight=low.length?'Обрати внимание на '+low.map(x=>x.g).join(', ')+': подходов меньше среднего среди тренируемых групп. Это ориентир, а не диагноз дисбаланса — учитывай косвенную нагрузку и восстановление.':'Распределение подходов относительно равномерно среди задействованных групп. Учитывай также косвенную нагрузку и восстановление.';
  const rows=cards.map(x=>{const open=muscleDetail===x.g,ex=[...x.exercises.entries()].sort((a,b)=>b[1].sets-a[1].sets).map(([n,v])=>h('div',{class:'muscle-exercise-row'},h('span',{},n),h('b',{},v.sets+' подх.'),h('small',{},v.volume?Math.round(v.volume).toLocaleString('ru-RU')+' кг·повт.':'—')));return h('div',{class:'muscle-row'},h('button',{type:'button',class:'muscle-row-toggle','aria-expanded':String(open),onclick:()=>{muscleDetail=open?'':x.g;render()}},h('b',{},x.g),h('span',{},x.sets+' подх.'),h('span',{},open?'−':'+')),h('div',{class:'muscle-track'},h('span',{class:'muscle-fill',style:'width:'+Math.max(3,x.sets/max*100)+'%'})),h('div',{class:'muscle-row-meta'},h('span',{},x.workouts.size+' трен.'),h('span',{},x.exercises.size+' упр.'),h('span',{},'к прошлому периоду: '+delta(x.sets,x.previous.sets)),h('span',{},'объём '+Math.round(x.volume).toLocaleString('ru-RU')+' кг·повт.')),open?h('div',{class:'muscle-detail'},...ex):null)});
- return h('section',{class:'muscle-analytics'},h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},names[muscleRange])),h('span',{class:'muscle-total'},total+' подходов')),controls,muscleMap(),h('div',{class:'muscle-bars'},...rows),h('div',{class:'muscle-balance'},h('b',{},'Баланс нагрузки'),h('p',{class:'muscle-insight'},insight)),h('p',{class:'muscle-footnote'},'Сравнение с предыдущим периодом такой же длительности. Основная группа упражнения; тоннаж без веса тела.'));
+ const compareOptions=groups.filter(g=>cur[g].sets>0||compareMuscles.includes(g));
+ compareMuscles=compareMuscles.filter(g=>groups.includes(g));
+ const compareMax=Math.max(1,...compareMuscles.map(g=>cur[g].sets));
+ const comparePanel=h('section',{class:'muscle-compare-panel'},
+  h('div',{class:'muscle-compare-heading'},h('div',{},h('h3',{},'Сравнение мышечной нагрузки'),h('p',{class:'mut'},'Выбери группы, чтобы сопоставить прямую и косвенную работу за один период.'))),
+  h('div',{class:'muscle-compare-picker','aria-label':'Выбор мышц для сравнения'},...compareOptions.map(g=>h('button',{type:'button',class:'b muscle-compare-chip'+(compareMuscles.includes(g)?' p':''),'aria-pressed':String(compareMuscles.includes(g)),onclick:()=>{compareMuscles=compareMuscles.includes(g)?compareMuscles.filter(x=>x!==g):[...compareMuscles,g];render()}},g))),
+  compareMuscles.length?h('div',{class:'muscle-compare-results'},...compareMuscles.map(g=>{
+   const item=cur[g],direct=item.directSets,indirect=item.indirectSets,totalEquivalent=item.sets,scale=Math.max(1,direct+indirect);
+   return h('article',{class:'muscle-compare-card'},
+    h('div',{class:'muscle-compare-card-head'},h('strong',{},g),h('b',{},totalEquivalent.toFixed(1)+' экв. подхода')),
+    h('div',{class:'muscle-compare-stacked','aria-label':'Прямая и косвенная нагрузка'},h('span',{class:'muscle-compare-direct',style:'width:'+(direct/scale*100)+'%'}),h('span',{class:'muscle-compare-indirect',style:'width:'+(indirect/scale*100)+'%'})),
+    h('div',{class:'muscle-compare-legend'},h('span',{},h('i',{class:'direct-dot'}),'Прямая: '+direct.toFixed(1)),h('span',{},h('i',{class:'indirect-dot'}),'Косвенная: '+indirect.toFixed(1))),
+    h('p',{class:'mut'},item.exercises.size+' упражн. · '+item.workouts.size+' тренировок'));
+  })):h('p',{class:'mut'},'Выбери хотя бы одну мышечную группу для сравнения.'),
+  h('p',{class:'muscle-footnote'},'Эквивалентные подходы — оценочная модель: прямой подход учитывается полностью, косвенный умножается на коэффициент упражнения. Это ориентир, а не измерение реальной физиологической нагрузки.')
+ );
+ return h('section',{class:'muscle-analytics'},h('div',{class:'muscle-analytics-title'},h('div',{},h('h3',{},'Нагрузка по мышечным группам'),h('p',{class:'mut'},names[muscleRange])),h('span',{class:'muscle-total'},total.toFixed(1)+' экв. подхода')),controls,muscleMap(),comparePanel,h('div',{class:'muscle-bars'},...rows),h('div',{class:'muscle-balance'},h('b',{},'Баланс нагрузки'),h('p',{class:'muscle-insight'},insight)),h('p',{class:'muscle-footnote'},'Сравнение с предыдущим периодом такой же длительности. Тоннаж учитывает коэффициент участия мышцы; вес тела не включён.'));
 }
 
 let historyMonth=new Date(),historySelected='';
