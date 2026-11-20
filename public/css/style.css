@@ -750,3 +750,24 @@ nav button[aria-current="true"] span:first-child{background:rgba(85,216,213,.14)
 .progress-exercise-option.is-selected{background:var(--soft);color:var(--accent);font-weight:700}
 .progress-exercise-empty,.progress-exercise-count{margin:10px 2px 0;color:var(--mut);font-size:12px}
 @media(max-width:520px){.progress-exercise-overlay{align-items:flex-end;padding:8px}.progress-exercise-dialog{width:100%;height:82dvh;max-height:82dvh;min-height:240px;border-radius:20px 20px 12px 12px;padding:14px}.progress-exercise-option{min-height:48px}}
+
+
+/* Stronger backdrop and floating muscle detail popup */
+.progress-exercise-overlay{background:rgba(0,4,7,.86)!important;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.muscle-3d-viewer{background:radial-gradient(ellipse at 50% 42%,rgba(94,207,212,.12),transparent 62%),linear-gradient(145deg,rgba(15,42,45,.32),rgba(5,20,22,.18))!important}
+.muscle-3d-controls{gap:12px;padding:12px 10px 14px}
+.muscle-detail-overlay{position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,4,7,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overscroll-behavior:contain}
+.muscle-detail-card{position:relative;width:min(440px,100%);max-height:min(78dvh,620px);overflow:auto;padding:26px;border:1px solid rgba(76,211,207,.38);border-radius:24px;background:linear-gradient(145deg,rgba(20,55,58,.98),rgba(8,29,32,.99));color:var(--ink);box-shadow:0 28px 90px rgba(0,0,0,.58);animation:muscleCardIn .18s ease-out}
+.muscle-detail-close{position:absolute;top:12px;right:14px;width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);font-size:27px;line-height:1;cursor:pointer}
+.muscle-detail-eyebrow{display:block;margin-bottom:8px;color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.12em}
+.muscle-detail-head h3{margin:0 42px 4px 0;font-size:22px;line-height:1.25}
+.muscle-detail-head p{margin:0;color:var(--mut);font-size:13px}
+.muscle-detail-stat{display:flex;align-items:baseline;gap:9px;margin:22px 0;padding:16px;border:1px solid rgba(76,211,207,.22);border-radius:16px;background:rgba(76,211,207,.08)}
+.muscle-detail-stat strong{color:var(--accent);font-size:32px;line-height:1}
+.muscle-detail-stat span{color:var(--mut);font-size:13px}
+.muscle-detail-exercises h4{margin:0 0 10px;font-size:14px}
+.muscle-detail-exercise{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+.muscle-detail-exercise b{color:var(--accent);white-space:nowrap}
+.muscle-detail-empty{color:var(--mut);font-size:13px;line-height:1.5}
+@keyframes muscleCardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){.muscle-detail-overlay{padding:14px}.muscle-detail-card{padding:22px 18px;border-radius:20px}.muscle-detail-head h3{font-size:20px}}
