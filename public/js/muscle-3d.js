@@ -46,10 +46,10 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    obj.material.side=THREE.DoubleSide;
   });
   const box=new THREE.Box3().setFromObject(body),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
-  body.position.sub(center);body.scale.setScalar(2.35/Math.max(size.x,size.y,size.z));scene.add(body);
+  body.position.sub(center);body.scale.setScalar(2.55/Math.max(size.x,size.y,size.z));body.position.y-=.18;scene.add(body);
   body.updateMatrixWorld(true);
   const fittedBox=new THREE.Box3().setFromObject(body),sphere=fittedBox.getBoundingSphere(new THREE.Sphere());
-  camera.position.set(0,0,Math.max(7.5,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.18));camera.lookAt(0,0,0);
+  camera.position.set(0,0,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.08);camera.lookAt(0,-.08,0);
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   renderer.domElement.addEventListener('pointerdown',event=>{pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===1){dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false}else if(pointers.size===2){dragging=false;const pts=[...pointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);pinchStart=pinchDistance}renderer.domElement.setPointerCapture?.(event.pointerId)});
   renderer.domElement.addEventListener('pointermove',event=>{if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
@@ -60,11 +60,11 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(body,true).find(x=>x.object.userData.tjMuscle);
    if(hit){const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
   });
-  const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(320,Math.min(500,w*.58));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(420,Math.min(680,w*.95));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   observer=new ResizeObserver(resize);observer.observe(host);resize();
   removalObserver=new MutationObserver(()=>{if(!host.isConnected)cleanup()});removalObserver.observe(document.body,{childList:true,subtree:true});
   const animate=()=>{if(disposed)return;raf=requestAnimationFrame(animate);renderer.render(scene,camera)};animate();
-  setStatus('Модель готова · нажми на мышцу или вращай пальцем');
+  setStatus('');
  }catch(error){setStatus('Ошибка загрузки 3D-модели');console.error('Muscle 3D:',error)}
  return cleanup;
 }
