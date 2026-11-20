@@ -12,7 +12,7 @@ async function threeModules(){
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
  let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false,selectedMuscle=null,THREE_REF,raycaster,pointer,cameraTarget,initialCameraPosition,cameraMotion=null;
- const pointers=new Map();let pinchDistance=0;
+ const pointers=new Map();let pinchDistance=0,lastPinchMidpoint=null;
  const animateCameraTo=(position,target,duration=720)=>{if(!camera||!cameraTarget)return;cameraMotion={fromPosition:camera.position.clone(),toPosition:position.clone(),fromTarget:cameraTarget.clone(),toTarget:target.clone(),started:performance.now(),duration};};
  const updateCameraMotion=()=>{if(!cameraMotion||!camera||!cameraTarget)return;const t=Math.min(1,(performance.now()-cameraMotion.started)/cameraMotion.duration),eased=1-Math.pow(1-t,3);camera.position.lerpVectors(cameraMotion.fromPosition,cameraMotion.toPosition,eased);cameraTarget.lerpVectors(cameraMotion.fromTarget,cameraMotion.toTarget,eased);camera.lookAt(cameraTarget);if(t>=1)cameraMotion=null;};
  const focusOnMuscle=obj=>{if(!obj||!camera||!cameraTarget||!THREE_REF)return;body.updateMatrixWorld(true);const bounds=new THREE_REF.Box3().setFromObject(obj),sphere=bounds.getBoundingSphere(new THREE_REF.Sphere()),target=sphere.center.clone();const direction=camera.position.clone().sub(cameraTarget).normalize();const distance=Math.max(2.15,Math.min(4.2,sphere.radius*4.2));animateCameraTo(target.clone().add(direction.multiplyScalar(distance)),target,760);};
@@ -44,9 +44,11 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    if(!obj.isMesh)return;
    const meta=obj.userData||{},isMuscle=meta.kind==='muscle';obj.userData.tjMuscle=isMuscle;
    if(isMuscle){
-    const group=String(meta.group||'').toLowerCase(),count=Number(loads[group])||0,intensity=Math.min(1,count/18);
-    const base=new THREE.Color(0x9da7aa),teal=new THREE.Color(0x16b9b3),color=base.clone().lerp(teal,.10+intensity*.72);
-    obj.material=new THREE.MeshStandardMaterial({color,roughness:.52,metalness:.32,emissive:teal,emissiveIntensity:.025+intensity*.16});
+    const group=String(meta.group||'').toLowerCase(),count=Math.max(0,Number(loads[group])||0),maxLoad=Math.max(1,...Object.values(loads).map(value=>Math.max(0,Number(value)||0))),intensity=count>0?Math.pow(count/maxLoad,.72):0;
+    const stops=[new THREE.Color(0x16b9b3),new THREE.Color(0xf0d64e),new THREE.Color(0xf28a38),new THREE.Color(0xe34b4b)];
+    const neutral=new THREE.Color(0x9da7aa);let color=neutral.clone();
+    if(intensity>0){const scaled=intensity*3,index=Math.min(2,Math.floor(scaled)),blend=Math.min(1,scaled-index);color.copy(stops[index]).lerp(stops[index+1],blend);}
+    const emissive=color.clone();obj.material=new THREE.MeshStandardMaterial({color,roughness:.52,metalness:.22,emissive,emissiveIntensity:.018+intensity*.12});
    }else obj.material=new THREE.MeshStandardMaterial({color:0x667276,roughness:.82,metalness:.12,transparent:true,opacity:.18});
    obj.material.side=THREE.DoubleSide;
    if(isMuscle){obj.userData.tjBaseColor=obj.material.color.clone();obj.userData.tjBaseEmissive=obj.material.emissiveIntensity;}
@@ -57,9 +59,9 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
   const fittedBox=new THREE.Box3().setFromObject(body),sphere=fittedBox.getBoundingSphere(new THREE.Sphere());
   camera.position.set(0,0,sphere.radius/Math.sin(THREE.MathUtils.degToRad(camera.fov/2))*1.08);initialCameraPosition=camera.position.clone();camera.lookAt(cameraTarget);
   raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
-  renderer.domElement.addEventListener('pointerdown',event=>{cameraMotion=null;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===1){dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false}else if(pointers.size===2){dragging=false;const pts=[...pointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)}renderer.domElement.setPointerCapture?.(event.pointerId)});
-  renderer.domElement.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size>=2){const pts=[...pointers.values()],distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance&&distance){const midX=(pts[0].x+pts[1].x)/2,midY=(pts[0].y+pts[1].y)/2;zoomAt(midX,midY,1-pinchDistance/distance)}pinchDistance=distance;dragMoved=true;return}if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
-  const endDrag=event=>{if(event?.pointerId!=null)pointers.delete(event.pointerId);dragging=false;pinchDistance=0};renderer.domElement.addEventListener('pointerup',endDrag);renderer.domElement.addEventListener('pointercancel',endDrag);renderer.domElement.addEventListener('lostpointercapture',endDrag);
+  renderer.domElement.addEventListener('pointerdown',event=>{cameraMotion=null;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size===1){dragging=true;lastX=event.clientX;dragStartX=event.clientX;dragMoved=false}else if(pointers.size===2){dragging=false;const pts=[...pointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);lastPinchMidpoint={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};dragMoved=true}renderer.domElement.setPointerCapture?.(event.pointerId)});
+  renderer.domElement.addEventListener('pointermove',event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});if(pointers.size>=2){const pts=[...pointers.values()],distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y),mid={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};if(lastPinchMidpoint&&camera&&cameraTarget){camera.updateMatrixWorld(true);const right=new THREE_REF.Vector3().setFromMatrixColumn(camera.matrix,0),up=new THREE_REF.Vector3().setFromMatrixColumn(camera.matrix,1),scale=camera.position.distanceTo(cameraTarget)*.0018,shift=right.clone().multiplyScalar(-(mid.x-lastPinchMidpoint.x)*scale).add(up.multiplyScalar((mid.y-lastPinchMidpoint.y)*scale));camera.position.add(shift);cameraTarget.add(shift);camera.lookAt(cameraTarget)}if(pinchDistance&&distance){zoomAt(mid.x,mid.y,1-pinchDistance/distance)}pinchDistance=distance;lastPinchMidpoint=mid;dragMoved=true;return}if(dragging){if(Math.abs(event.clientX-dragStartX)>5)dragMoved=true;body.rotation.y+=(event.clientX-lastX)*.008;lastX=event.clientX}});
+  const endDrag=event=>{if(event?.pointerId!=null)pointers.delete(event.pointerId);dragging=false;pinchDistance=0;lastPinchMidpoint=null};renderer.domElement.addEventListener('pointerup',endDrag);renderer.domElement.addEventListener('pointercancel',endDrag);renderer.domElement.addEventListener('lostpointercapture',endDrag);
   renderer.domElement.addEventListener('wheel',event=>{event.preventDefault();zoomAt(event.clientX,event.clientY,event.deltaY>0?-.14:.14)},{passive:false});
   renderer.domElement.addEventListener('click',event=>{
    if(dragMoved){dragMoved=false;return}
