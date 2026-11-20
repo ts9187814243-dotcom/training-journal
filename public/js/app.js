@@ -478,7 +478,7 @@ function muscleAnalytics(){
   viewer.append(viewerControls);
   figures.append(viewer);
   const loadMap={chest:cur['Грудь'].sets,shoulders:cur['Плечи'].sets+cur['Передняя дельта'].sets+cur['Средняя дельта'].sets+cur['Задняя дельта'].sets,biceps:cur['Бицепс'].sets,triceps:cur['Трицепс'].sets,lats:cur['Широчайшие'].sets,'middle back':cur['Спина'].sets,'lower back':cur['Спина'].sets,quadriceps:cur['Квадрицепсы'].sets,hamstrings:cur['Бицепс бедра'].sets,glutes:cur['Ягодицы'].sets,calves:cur['Икры'].sets,abdominals:cur['Пресс'].sets,forearms:cur['Предплечья'].sets,traps:cur['Трапеции'].sets};
-  const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape)};
+  const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape);window.dispatchEvent(new CustomEvent('muscle3d:reset'))};
   const muscleCardEscape=event=>{if(event.key==='Escape')closeMuscleCard()};
   import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onSelect:info=>{
    const group=info.group||'',groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Широчайшие','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы',label=localizedMuscleLabel(info.label,groupName);
