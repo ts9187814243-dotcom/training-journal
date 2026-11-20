@@ -408,7 +408,7 @@ function backup(){
 }
 let muscleRange='week',muscleDetail='';
 function muscleAnalytics(){
- const groups=['Грудь','Спина','Широчайшие','Плечи','Передняя дельта','Средняя дельта','Задняя дельта','Бицепс','Трицепс','Предплечья','Трапеции','Квадрицепсы','Бицепс бедра','Ягодицы','Икры','Пресс','Косые мышцы живота'];
+ const groups=[...MUSCLE_GROUPS];
  const now=new Date();now.setHours(0,0,0,0);const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
  const endDate=iso(now),sd=new Date(now);if(muscleRange==='week')sd.setDate(sd.getDate()-6);else if(muscleRange==='month')sd.setDate(sd.getDate()-29);else if(muscleRange==='quarter')sd.setMonth(sd.getMonth()-3);
  const startDate=muscleRange==='all'?'0000-01-01':iso(sd),duration=Math.max(1,Math.round((now-sd)/86400000)+1),pe=new Date(sd);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-duration+1);
@@ -479,7 +479,7 @@ function muscleAnalytics(){
   const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape)};
   const muscleCardEscape=event=>{if(event.key==='Escape')closeMuscleCard()};
   import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onSelect:info=>{
-   const group=info.group||'',groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Спина','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы',label=localizedMuscleLabel(info.label,groupName);
+   const group=info.group||'',groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Широчайшие','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы',label=localizedMuscleLabel(info.label,groupName);
 
    const item=cur[groupName]||{sets:0,exercises:new Map()};
    closeMuscleCard();
