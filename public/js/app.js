@@ -471,7 +471,7 @@ function muscleAnalytics(){
     ['Икры','M65 230 Q72 226 78 230 L81 268 Q81 280 75 284 Q68 282 66 270 Z']
    ]
   };
-  const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Меньше → больше')));
+  const wrap=h('div',{class:'anatomy-map anatomy-map-3d'},h('div',{class:'anatomy-map-heading'},h('div',{},h('b',{},'Анатомическая карта'),h('p',{class:'mut'},'Объёмная модель мышц · нажми на область, чтобы посмотреть нагрузку')),h('span',{class:'anatomy-scale'},'Низкая → высокая нагрузка')));
   const figures=h('div',{class:'anatomy-real-image-wrap'});
   const viewer=h('div',{class:'muscle-3d-viewer','aria-label':'Интерактивная трёхмерная модель мышц человека'});
   const viewerControls=h('div',{class:'muscle-3d-controls'},h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:-1}})),'aria-label':'Приблизить'},'+'),h('button',{type:'button',class:'b muscle-3d-zoom',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:zoom',{detail:{delta:1}})),'aria-label':'Отдалить'},'−'),h('button',{type:'button',class:'b muscle-3d-reset',onclick:()=>window.dispatchEvent(new CustomEvent('muscle3d:reset'))},'Сбросить'));
