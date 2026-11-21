@@ -44,7 +44,36 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    if(!obj.isMesh)return;
    const meta=obj.userData||{},isMuscle=meta.kind==='muscle';obj.userData.tjMuscle=isMuscle;
    if(isMuscle){
-    const group=String(meta.group||'').toLowerCase(),count=Math.max(0,Number(loads[group])||0),maxLoad=Math.max(1,...Object.values(loads).map(value=>Math.max(0,Number(value)||0))),intensity=count>0?Math.pow(count/maxLoad,.72):0;
+    const group=String(meta.group||'').toLowerCase(),label=String(meta.label||obj.name||'').toLowerCase().replace(/[_-]+/g,' '),count=Math.max(0,Number(loads[group])||0),maxLoad=Math.max(1,...Object.values(loads).map(value=>Math.max(0,Number(value)||0)));
+    const anatomicalFactor=(()=>{
+     const rules=[
+      [/vastus lateralis|lateral.*quadriceps|lateral head of quadriceps/,1],
+      [/vastus medialis|medial.*quadriceps|medial head of quadriceps/,1],
+      [/rectus femoris/,1.08],
+      [/vastus intermedius/,0.92],
+      [/biceps femoris|semitendinosus|semimembranosus/,0.92],
+      [/gluteus maximus/,1],
+      [/gluteus medius|gluteus minimus/,0.48],
+      [/gastrocnemius/,0.72],
+      [/soleus/,0.62],
+      [/tibialis anterior/,0.18],
+      [/rectus abdominis/,0.82],
+      [/external oblique|internal oblique/,0.52],
+      [/erector spinae|spinal erector/,0.72],
+      [/pectoralis major|sternocostal head|clavicular head/,1],
+      [/anterior deltoid|front deltoid/,0.92],
+      [/lateral deltoid|middle deltoid/,0.82],
+      [/posterior deltoid|rear deltoid/,0.72],
+      [/latissimus dorsi/,1],
+      [/trapezius/,0.78],
+      [/biceps brachii/,1],
+      [/triceps brachii/,1],
+      [/brachialis|brachioradialis/,0.7],
+      [/forearm|pronator|supinator|wrist flexor|wrist extensor/,0.68]
+     ];
+     const match=rules.find(([pattern])=>pattern.test(label));return match?match[1]:.82;
+    })();
+    const anatomicalLoad=count*anatomicalFactor,intensity=anatomicalLoad>0?Math.pow(anatomicalLoad/(maxLoad*1.08),.72):0;
     const stops=[new THREE.Color(0x16b9b3),new THREE.Color(0xf0d64e),new THREE.Color(0xf28a38),new THREE.Color(0xe34b4b)];
     const neutral=new THREE.Color(0x9da7aa);let targetColor=neutral.clone();
     if(intensity>0){const scaled=intensity*3,index=Math.min(2,Math.floor(scaled)),blend=Math.min(1,scaled-index);targetColor.copy(stops[index]).lerp(stops[index+1],blend);}
