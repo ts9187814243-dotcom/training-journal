@@ -171,6 +171,29 @@ const MUSCLE_LABELS={
 "gluteus maximus muscle":{ru:"Большая ягодичная мышца",en:"Gluteus maximus",de:"Großer Gesäßmuskel",es:"Glúteo mayor",fr:"Grand fessier",zh:"臀大肌",ja:"大殿筋",hi:"ग्लूटियस मैक्सिमस"},
 "gastrocnemius muscle":{ru:"Икроножная мышца",en:"Gastrocnemius",de:"Zwillingswadenmuskel",es:"Gastrocnemio",fr:"Gastrocnémien",zh:"腓肠肌",ja:"腓腹筋",hi:"गैस्ट्रोक्नेमियस"},
 "soleus muscle":{ru:"Камбаловидная мышца",en:"Soleus",de:"Musculus soleus",es:"Sóleo",fr:"Soléaire",zh:"比目鱼肌",ja:"ヒラメ筋",hi:"सोलियस"}
+,"vastus intermedius muscle":{ru:"Промежуточная широкая мышца бедра",en:"Vastus intermedius",de:"Musculus vastus intermedius",es:"Vasto intermedio",fr:"Vaste intermédiaire",zh:"股中间肌",ja:"中間広筋",hi:"वास्टस इंटरमीडियस"}
+,"biceps femoris muscle":{ru:"Двуглавая мышца бедра",en:"Biceps femoris",de:"Musculus biceps femoris",es:"Bíceps femoral",fr:"Biceps fémoral",zh:"股二头肌",ja:"大腿二頭筋",hi:"बाइसेप्स फेमोरिस"}
+,"semitendinosus muscle":{ru:"Полусухожильная мышца",en:"Semitendinosus",de:"半腱肌",es:"Semitendinoso",fr:"Semi-tendineux",zh:"半腱肌",ja:"半腱様筋",hi:"सेमिटेंडिनोसस"}
+,"semimembranosus muscle":{ru:"Полуперепончатая мышца",en:"Semimembranosus",de:"Musculus semimembranosus",es:"Semimembranoso",fr:"Semi-membraneux",zh:"半膜肌",ja:"半膜様筋",hi:"सेमिमेम्ब्रेनोसस"}
+,"gluteus medius muscle":{ru:"Средняя ягодичная мышца",en:"Gluteus medius",de:"Mittlerer Gesäßmuskel",es:"Glúteo medio",fr:"Moyen fessier",zh:"臀中肌",ja:"中殿筋",hi:"ग्लूटियस मेडियस"}
+,"gluteus minimus muscle":{ru:"Малая ягодичная мышца",en:"Gluteus minimus",de:"Kleiner Gesäßmuskel",es:"Glúteo menor",fr:"Petit fessier",zh:"臀小肌",ja:"小殿筋",hi:"ग्लूटियस मिनिमस"}
+,"tibialis anterior muscle":{ru:"Передняя большеберцовая мышца",en:"Tibialis anterior",de:"Vorderer Schienbeinmuskel",es:"Tibial anterior",fr:"Tibial antérieur",zh:"胫骨前肌",ja:"前脛骨筋",hi:"टिबियलिस एंटीरियर"}
+,"fibularis longus muscle":{ru:"Длинная малоберцовая мышца",en:"Fibularis longus",de:"Langer Wadenbeinmuskel",es:"Peroneo largo",fr:"Long fibulaire",zh:"腓骨长肌",ja:"長腓骨筋",hi:"फिबुलारिस लॉन्गस"}
+,"fibularis brevis muscle":{ru:"Короткая малоберцовая мышца",en:"Fibularis brevis",de:"Kurzer Wadenbeinmuskel",es:"Peroneo corto",fr:"Court fibulaire",zh:"腓骨短肌",ja:"短腓骨筋",hi:"फिबुलारिस ब्रेविस"}
+,"sartorius muscle":{ru:"Портняжная мышца",en:"Sartorius",de:"Schneidermuskel",es:"Sartorio",fr:"Sartorius",zh:"缝匠肌",ja:"縫工筋",hi:"सार्टोरियस"}
+,"gracilis muscle":{ru:"Тонкая мышца",en:"Gracilis",de:"Musculus gracilis",es:"Grácil",fr:"Grêle",zh:"股薄肌",ja:"薄筋",hi:"ग्रैसिलिस"}
+,"adductor longus muscle":{ru:"Длинная приводящая мышца",en:"Adductor longus",de:"Langer Adduktor",es:"Aductor largo",fr:"Long adducteur",zh:"长收肌",ja:"長内転筋",hi:"एडक्टर लॉन्गस"}
+,"adductor brevis muscle":{ru:"Короткая приводящая мышца",en:"Adductor brevis",de:"Kurzer Adduktor",es:"Aductor corto",fr:"Court adducteur",zh:"短收肌",ja:"短内転筋",hi:"एडक्टर ब्रेविस"}
+,"adductor magnus muscle":{ru:"Большая приводящая мышца",en:"Adductor magnus",de:"Großer Adduktor",es:"Aductor mayor",fr:"Grand adducteur",zh:"大收肌",ja:"大内転筋",hi:"एडक्टर मैग्नस"}
+,"pectineus muscle":{ru:"Гребенчатая мышца",en:"Pectineus",de:"Musculus pectineus",es:"Pectíneo",fr:"Pectiné",zh:"耻骨肌",ja:"恥骨筋",hi:"पेक्टिनियस"}
+,"iliopsoas muscle":{ru:"Подвздошно-поясничная мышца",en:"Iliopsoas",de:"Iliopsoas",es:"Iliopsoas",fr:"Ilio-psoas",zh:"髂腰肌",ja:"腸腰筋",hi:"इलियोप्सोआस"}
+,"rectus abdominis muscle":{ru:"Прямая мышца живота",en:"Rectus abdominis",de:"Gerader Bauchmuskel",es:"Recto abdominal",fr:"Droit de l’abdomen",zh:"腹直肌",ja:"腹直筋",hi:"रेक्टस एब्डोमिनिस"}
+,"external oblique muscle":{ru:"Наружная косая мышца живота",en:"External oblique",de:"Äußerer schräger Bauchmuskel",es:"Oblicuo externo",fr:"Oblique externe",zh:"腹外斜肌",ja:"外腹斜筋",hi:"एक्सटर्नल ओब्लिक"}
+,"internal oblique muscle":{ru:"Внутренняя косая мышца живота",en:"Internal oblique",de:"Innerer schräger Bauchmuskel",es:"Oblicuo interno",fr:"Oblique interne",zh:"腹内斜肌",ja:"内腹斜筋",hi:"इंटरनल ओब्लिक"}
+,"erector spinae muscle":{ru:"Мышца, выпрямляющая позвоночник",en:"Erector spinae",de:"Rückenstrecker",es:"Erectores espinales",fr:"Muscles érecteurs du rachis",zh:"竖脊肌",ja:"脊柱起立筋",hi:"इरेक्टर स्पाइनी"}
+,"brachialis muscle":{ru:"Плечевая мышца",en:"Brachialis",de:"Musculus brachialis",es:"Braquial",fr:"Brachial",zh:"肱肌",ja:"上腕筋",hi:"ब्रैकियलिस"}
+,"brachioradialis muscle":{ru:"Плечелучевая мышца",en:"Brachioradialis",de:"Oberarmspeichenmuskel",es:"Braquiorradial",fr:"Brachio-radial",zh:"肱桡肌",ja:"腕橈骨筋",hi:"ब्रैकियोरेडियलिस"}
+
 };
 const localizedMuscleLabel=(label,group)=>{const lang=S.settings.language||'ru',raw=String(label||'').trim(),key=raw.toLowerCase();if(MUSCLE_LABELS[key])return MUSCLE_LABELS[key][lang]||MUSCLE_LABELS[key].en;if(raw&&raw.toLowerCase()!=='muscle')return raw.replace(/\bmuscle\b/i,'').trim();return tr(group||'Мышца')};
 
