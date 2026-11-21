@@ -172,7 +172,7 @@ const MUSCLE_LABELS={
 "gastrocnemius muscle":{ru:"Икроножная мышца",en:"Gastrocnemius",de:"Zwillingswadenmuskel",es:"Gastrocnemio",fr:"Gastrocnémien",zh:"腓肠肌",ja:"腓腹筋",hi:"गैस्ट्रोक्नेमियस"},
 "soleus muscle":{ru:"Камбаловидная мышца",en:"Soleus",de:"Musculus soleus",es:"Sóleo",fr:"Soléaire",zh:"比目鱼肌",ja:"ヒラメ筋",hi:"सोलियस"}
 };
-const localizedMuscleLabel=(label,group)=>{const lang=S.settings.language||'ru',key=String(label||'').trim().toLowerCase();if(MUSCLE_LABELS[key])return MUSCLE_LABELS[key][lang]||MUSCLE_LABELS[key].en;const suffix={en:'muscle',de:'Muskel',es:'músculo',fr:'muscle',zh:'肌肉',ja:'筋',hi:'मांसपेशी'}[lang]||'мышца';return lang==='ru'?(group||'Мышца')+' · '+suffix:tr(group||'Другие мышцы')+' · '+suffix};
+const localizedMuscleLabel=(label,group)=>{const lang=S.settings.language||'ru',raw=String(label||'').trim(),key=raw.toLowerCase();if(MUSCLE_LABELS[key])return MUSCLE_LABELS[key][lang]||MUSCLE_LABELS[key].en;if(raw&&raw.toLowerCase()!=='muscle')return raw.replace(/\\bmuscle\\b/i,'').trim();return tr(group||'Мышца')};
 
 const unitToKg=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)&&n>0?(S.settings.units==='lb'?n/2.2046226218:n):0};
 const applyTheme=()=>{const t=S.settings.theme;document.documentElement.dataset.theme=t==='system'?'':t};applyTheme();
@@ -481,7 +481,7 @@ function muscleAnalytics(){
   const closeMuscleCard=()=>{document.querySelector('.muscle-detail-overlay')?.remove();document.removeEventListener('keydown',muscleCardEscape);window.dispatchEvent(new CustomEvent('muscle3d:reset'))};
   const muscleCardEscape=event=>{if(event.key==='Escape')closeMuscleCard()};
   import('./muscle-3d.js').then(({mountMuscle3D})=>mountMuscle3D(viewer,{loads:loadMap,onSelect:info=>{
-   const group=info.group||'',groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Широчайшие','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Другие мышцы',label=localizedMuscleLabel(info.label,groupName);
+   const group=info.group||'',groupName=({chest:'Грудь',shoulders:'Плечи',biceps:'Бицепс',triceps:'Трицепс',lats:'Широчайшие','middle back':'Спина','lower back':'Спина',quadriceps:'Квадрицепсы',hamstrings:'Бицепс бедра',glutes:'Ягодицы',calves:'Икры',abdominals:'Пресс',forearms:'Предплечья',traps:'Трапеции'})[group]||'Мышца',label=localizedMuscleLabel(info.label,groupName);
 
    const item=cur[groupName]||{sets:0,exercises:new Map()};
    closeMuscleCard();
