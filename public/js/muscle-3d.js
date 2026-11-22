@@ -11,7 +11,7 @@ async function threeModules(){
  return THREE_PROMISE;
 }
 export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>{}}={}){
- let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false,selectedMuscle=null,THREE_REF,raycaster,pointer,cameraTarget,initialCameraPosition,cameraMotion=null;
+ let renderer,observer,removalObserver,disposed=false,scene,camera,body,raf=0,dragging=false,lastX=0,dragStartX=0,dragMoved=false,selectedMuscle=null,THREE_REF,raycaster,pointer,cameraTarget,initialCameraPosition,cameraMotion=null,viewBeforeSelection=null;
  const pointers=new Map();let pinchDistance=0,lastPinchMidpoint=null;
  const animateCameraTo=(position,target,duration=720)=>{if(!camera||!cameraTarget)return;cameraMotion={fromPosition:camera.position.clone(),toPosition:position.clone(),fromTarget:cameraTarget.clone(),toTarget:target.clone(),started:performance.now(),duration};};
  const updateCameraMotion=()=>{if(!cameraMotion||!camera||!cameraTarget)return;const t=Math.min(1,(performance.now()-cameraMotion.started)/cameraMotion.duration),eased=1-Math.pow(1-t,3);camera.position.lerpVectors(cameraMotion.fromPosition,cameraMotion.toPosition,eased);cameraTarget.lerpVectors(cameraMotion.fromTarget,cameraMotion.toTarget,eased);camera.lookAt(cameraTarget);if(t>=1)cameraMotion=null;};
@@ -20,9 +20,10 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
  const zoomBy=delta=>{if(!camera||!renderer)return;const rect=renderer.domElement.getBoundingClientRect();zoomAt(rect.left+rect.width/2,rect.top+rect.height/2,delta<0?.2:-.2)};
  const setStatus=text=>{if(!disposed)onStatus(text)};
  const clearSelectedMuscle=()=>{if(selectedMuscle){const mat=selectedMuscle.material,base=selectedMuscle.userData.tjBaseColor;if(mat?.color&&base)mat.color.copy(base);if(mat?.emissive)mat.emissive.setHex(0x16b9b3);if(mat)mat.emissiveIntensity=selectedMuscle.userData.tjBaseEmissive??.025;selectedMuscle=null}};
- const reset=()=>{if(body)body.rotation.y=0;if(camera&&initialCameraPosition)animateCameraTo(initialCameraPosition,new THREE_REF.Vector3(0,-.08,0),650);clearSelectedMuscle()};
- const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset);window.removeEventListener('muscle3d:zoom',onZoom)};
- window.addEventListener('muscle3d:reset',reset);
+ const restoreView=()=>{if(!viewBeforeSelection||!camera||!cameraTarget)return;const saved=viewBeforeSelection;viewBeforeSelection=null;if(body)body.rotation.y=saved.rotationY;animateCameraTo(saved.position,saved.target,560);clearSelectedMuscle()};
+ const reset=()=>{viewBeforeSelection=null;if(body)body.rotation.y=0;if(camera&&initialCameraPosition)animateCameraTo(initialCameraPosition,new THREE_REF.Vector3(0,-.08,0),650);clearSelectedMuscle()};
+ const cleanup=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);observer?.disconnect();removalObserver?.disconnect();if(body)body.traverse(obj=>{obj.geometry?.dispose();if(Array.isArray(obj.material))obj.material.forEach(x=>x.dispose());else obj.material?.dispose()});renderer?.dispose();renderer?.domElement.remove();window.removeEventListener('muscle3d:reset',reset);window.removeEventListener('muscle3d:restore-view',restoreView);window.removeEventListener('muscle3d:zoom',onZoom)};
+ window.addEventListener('muscle3d:reset',reset);window.addEventListener('muscle3d:restore-view',restoreView);
  const onZoom=event=>zoomBy(Number(event.detail?.delta)||0);window.addEventListener('muscle3d:zoom',onZoom);
  try{
   const [THREE,{GLTFLoader}]=await threeModules();if(disposed)return;
@@ -96,7 +97,7 @@ export async function mountMuscle3D(host,{loads={},onStatus=()=>{},onSelect=()=>
    if(dragMoved){dragMoved=false;return}
    const rect=renderer.domElement.getBoundingClientRect();pointer.x=((event.clientX-rect.left)/rect.width)*2-1;pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
    raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(body,true).find(x=>x.object.userData.tjMuscle);
-   if(hit){clearSelectedMuscle();selectedMuscle=hit.object;selectedMuscle.material.color.set(0x62f3df);selectedMuscle.material.emissive.set(0x20d9c9);selectedMuscle.material.emissiveIntensity=.62;focusOnMuscle(selectedMuscle);const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
+   if(hit){viewBeforeSelection={position:camera.position.clone(),target:cameraTarget.clone(),rotationY:body.rotation.y};clearSelectedMuscle();selectedMuscle=hit.object;selectedMuscle.material.color.set(0x62f3df);selectedMuscle.material.emissive.set(0x20d9c9);selectedMuscle.material.emissiveIntensity=.62;focusOnMuscle(selectedMuscle);const m=hit.object.userData||{};onSelect({label:m.label||hit.object.name,group:String(m.group||'').toLowerCase(),side:m.side||''})}
   });
   const resize=()=>{if(!renderer||disposed)return;const w=Math.max(1,host.clientWidth),h=Math.max(420,Math.min(680,w*.95));camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   observer=new ResizeObserver(resize);observer.observe(host);resize();
