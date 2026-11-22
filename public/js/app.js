@@ -206,6 +206,8 @@ const localizedMuscleLabel=(label,group)=>{
    while(at!==-1){out=out.slice(0,at)+ru+out.slice(at+en.length);at=out.toLowerCase().indexOf(en,at+ru.length);}
   }
   out=out.replace(/\bthe\b|\bof\b|\bmuscles?\b/gi,' ').replace(/\s+/g,' ').trim();
+  // Не показываем смешанное русско-английское название: если остались непереведённые латинские слова, используем русское название группы.
+  if(/[a-z]/i.test(out))return group||'Мышца';
   if(out)return out.charAt(0).toUpperCase()+out.slice(1);
  }
  if(raw&&raw.toLowerCase()!=='muscle')return raw.replace(/\bmuscle\b/i,'').trim();
