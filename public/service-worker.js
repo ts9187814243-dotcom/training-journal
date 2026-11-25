@@ -1,4 +1,4 @@
-const CACHE_NAME='training-journal-pwa-v51';
+const CACHE_NAME='training-journal-pwa-v52';
 const STATIC_FILES=['/','/index.html','/css/style.css','/js/app.js','/js/coach-renderer.js','/js/muscle-3d.js','/js/muscle-analytics.js','/css/coach.css','/manifest.webmanifest','/icons/app-icon.jpg','/images/mountain-bg-hq.jpg'];
 
 self.addEventListener('install',event=>{
