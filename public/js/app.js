@@ -117,6 +117,24 @@ const UI_WORDS={
 };
 Object.keys(UI_WORDS).forEach(k=>Object.assign(WORDS[k]||(WORDS[k]={}),UI_WORDS[k]));
 const tr=t=>(WORDS[S.settings.language]||{})[t]||t;
+const translateDomText=(root=document.body)=>{
+ const dict=WORDS[S.settings.language]||{};
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ nodes.forEach(node=>{const raw=node.nodeValue;if(!raw||!raw.trim())return;const lead=raw.match(/^\\s*/)?.[0]||'',tail=raw.match(/\\s*$/)?.[0]||'',key=raw.trim();if(dict[key])node.nodeValue=lead+dict[key]+tail});
+ root.querySelectorAll?.('[placeholder],[title],[aria-label]').forEach(el=>['placeholder','title','aria-label'].forEach(attr=>{const value=el.getAttribute(attr);if(value&&dict[value])el.setAttribute(attr,dict[value])}));
+};
+let translationObserver=null;
+const observeTranslations=()=>{
+ if(translationObserver)translationObserver.disconnect();
+ translateDomText(document.body);
+ translationObserver=new MutationObserver(records=>records.forEach(record=>{
+  if(record.type==='characterData'){const n=record.target;if(n.nodeValue){const key=n.nodeValue.trim(),translated=(WORDS[S.settings.language]||{})[key];if(translated)n.nodeValue=n.nodeValue.replace(key,translated)}}
+  record.addedNodes?.forEach(node=>{if(node.nodeType===Node.TEXT_NODE){const key=node.nodeValue.trim(),translated=(WORDS[S.settings.language]||{})[key];if(translated)node.nodeValue=node.nodeValue.replace(key,translated)}else if(node.nodeType===Node.ELEMENT_NODE)translateDomText(node)});
+ }));
+ translationObserver.observe(document.body,{subtree:true,childList:true,characterData:true});
+};
+
 
 const ANATOMY_WORDS={
  en:{"АНАТОМИЧЕСКАЯ КАРТА":"ANATOMY MAP","подходов за выбранный период":"sets in selected period","Упражнения":"Exercises","За выбранный период нагрузка на эту мышцу не зарегистрирована.":"No recorded load for this muscle in the selected period.","Грудь":"Chest","Спина":"Back","Плечи":"Shoulders","Бицепс":"Biceps","Трицепс":"Triceps","Квадрицепсы":"Quadriceps","Бицепс бедра":"Hamstrings","Ягодицы":"Glutes","Икры":"Calves","Пресс":"Abs","Предплечья":"Forearms","Трапеции":"Traps","Sternocostal head of pectoralis major muscle":"Sternocostal head of pectoralis major","Rectus femoris muscle":"Rectus femoris","Выбрать другое упражнение":"Choose another exercise","Открыть статистику упражнения":"Open exercise stats"},
@@ -992,8 +1010,9 @@ function render(){
  {const av=document.getElementById('av');av.replaceChildren();const showGear=tab==='profile'&&!settingsOpen;const icon=h('span',{style:'display:flex;align-items:center;justify-content:center'});icon.innerHTML=showGear
  ? `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.8h4l.55 2.45a7.1 7.1 0 0 1 1.55.9l2.4-.8 2 3.46-1.85 1.65a7.5 7.5 0 0 1 0 1.8l1.85 1.65-2 3.46-2.4-.8a7.1 7.1 0 0 1-1.55.9L14 19.9h-4l-.55-2.45a7.1 7.1 0 0 1-1.55-.9l-2.4.8-2-3.46 1.85-1.65a7.5 7.5 0 0 1 0-1.8L3.5 8.79l2-3.46 2.4.8a7.1 7.1 0 0 1 1.55-.9L10 2.8Z"/><circle cx="12" cy="11.8" r="3"/></svg>`
  : `<svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>`;
- av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());enhanceSelects(vv);
+ av.append(icon);const label=showGear?tr('Настройки'):tr('Профиль');av.setAttribute('aria-label',label);av.title=label}const vv=document.getElementById('v');vv.className=fresh?'in':'';fresh=false;vv.style.setProperty('--c',TC[tab]);vv.replaceChildren({plans,log,progress,coach:coachV,profile:profileV}[tab]());enhanceSelects(vv);translateDomText(vv);
 }
 render();
+observeTranslations();
 window.setTimeout(hideSplash,2800);
 Promise.resolve().then(()=>initSupabase()).catch(error=>console.error('Supabase init failed:',error)).finally(()=>window.setTimeout(hideSplash,650));
