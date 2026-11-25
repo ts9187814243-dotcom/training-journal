@@ -116,6 +116,16 @@ const UI_WORDS={
  hi:{'ИИ-тренер (API)':'AI ट्रेनर (API)','ChatGPT (вручную)':'ChatGPT (मैनुअल)','Gemini (вручную)':'Gemini (मैनुअल)','Отдых закончен':'आराम समाप्त'}
 };
 Object.keys(UI_WORDS).forEach(k=>Object.assign(WORDS[k]||(WORDS[k]={}),UI_WORDS[k]));
+const SHELL_WORDS={
+ en:{"Твой путь":"Your path","к сильной версии себя":"to a stronger you","Загрузка...":"Loading...","Установить":"Install","Личный кабинет":"Profile","Таймер отдыха":"Rest timer","Отдых":"Rest","Стоп":"Stop"},
+ de:{"Твой путь":"Dein Weg","к сильной версии себя":"zu einem stärkeren Ich","Загрузка...":"Wird geladen...","Установить":"Installieren","Личный кабинет":"Profil","Таймер отдыха":"Pausentimer","Отдых":"Pause","Стоп":"Stopp"},
+ es:{"Твой путь":"Tu camino","к сильной версии себя":"hacia una versión más fuerte de ti","Загрузка...":"Cargando...","Установить":"Instalar","Личный кабинет":"Perfil","Таймер отдыха":"Temporizador de descanso","Отдых":"Descanso","Стоп":"Parar"},
+ fr:{"Твой путь":"Votre chemin","к сильной версии себя":"vers une version plus forte de vous-même","Загрузка...":"Chargement...","Установить":"Installer","Личный кабинет":"Profil","Таймер отдыха":"Minuteur de repos","Отдых":"Repos","Стоп":"Arrêter"},
+ zh:{"Твой путь":"你的道路","к сильной версии себя":"通往更强大的自己","Загрузка...":"正在加载...","Установить":"安装","Личный кабинет":"个人资料","Таймер отдыха":"休息计时器","Отдых":"休息","Стоп":"停止"},
+ ja:{"Твой путь":"あなたの道","к сильной версии себя":"より強い自分へ","Загрузка...":"読み込み中...","Установить":"インストール","Личный кабинет":"プロフィール","Таймер отдыха":"休憩タイマー","Отдых":"休憩","Стоп":"停止"},
+ hi:{"Твой путь":"आपका रास्ता","к сильной версии себя":"अपने मजबूत रूप की ओर","Загрузка...":"लोड हो रहा है...","Установить":"इंस्टॉल करें","Личный кабинет":"प्रोफ़ाइल","Таймер отдыха":"आराम टाइमर","Отдых":"आराम","Стоп":"रोकें"}
+};
+Object.keys(SHELL_WORDS).forEach(k=>Object.assign(WORDS[k]||(WORDS[k]={}),SHELL_WORDS[k]));
 const tr=t=>(WORDS[S.settings.language]||{})[t]||t;
 const translateDomText=(root=document.body)=>{
  const dict=WORDS[S.settings.language]||{};
